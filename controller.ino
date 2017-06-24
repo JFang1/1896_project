@@ -35,6 +35,8 @@
 Adafruit_BNO055 bno = Adafruit_BNO055(55);
 String dataString = "";
 File dataFile;
+const int led = 8;
+const int button = 3;
 
 /**************************************************************************/
 /*
@@ -97,11 +99,11 @@ void displayCalStatus(void)
   bno.getCalibration(&system, &gyro, &accel, &mag);
 
   /* The data should be ignored until the system calibration is > 0 */
-  Serial.print("\t");
-  if (!system)
-  {
-    Serial.print("! ");
-  }
+  //Serial.print("\t");
+  //if (!system)
+  //{
+  //  Serial.print("! ");
+  //}
 
   /* Display the individual values */
   Serial.print("Sys:");
@@ -112,6 +114,15 @@ void displayCalStatus(void)
   Serial.print(accel, DEC);
   Serial.print(" M:");
   Serial.print(mag, DEC);
+
+  if(mag==3 && gyro ==3 && accel==3){
+    delay(200);
+    digitalWrite(led,HIGH);
+    delay(200);
+    digitalWrite(led,LOW);
+  }
+ Serial.print("\r\n");
+  
 }
 
 /**************************************************************************/
@@ -161,7 +172,12 @@ void setup(void)
   }
   Serial.println("initialization done.");
   
+  pinMode(led,OUTPUT);
+  pinMode(button,INPUT);
 
+  while(true){
+    displayCalStatus();
+  }
 }
 
 /**************************************************************************/
@@ -221,4 +237,4 @@ void loop(void)
  //   delay(BNO055_SAMPLERATE_DELAY_MS);
    // Serial.println("Need to be longer");
   //}
-}
+ }
