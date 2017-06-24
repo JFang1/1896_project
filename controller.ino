@@ -30,10 +30,11 @@
 */
 
 /* Set the delay between fresh samples */
-#define BNO055_SAMPLERATE_DELAY_MS (0)
+#define BNO055_SAMPLERATE_DELAY_MS (10)
 
 Adafruit_BNO055 bno = Adafruit_BNO055(55);
-int i = 0;
+String dataString = "";
+File dataFile;
 
 /**************************************************************************/
 /*
@@ -176,7 +177,7 @@ void loop(void)
   bno.getEventAcc(&event);
 
   /* Display the floating point data */
-  i++;
+  //i++;
   //Serial.print(i);
   //Serial.print(":\t");
   //Serial.print("X: ");
@@ -197,24 +198,27 @@ void loop(void)
 
   // open the file. note that only one file can be open at a time,
   // so you have to close this one before opening another.
-  File dataFile = SD.open("datalog2.txt", FILE_WRITE);
-
-  String dataString = "";
   dataString+=event.acceleration.x;
   dataString+=",";
   dataString+=event.acceleration.y;
   dataString+=",";
   dataString+=event.acceleration.z;
+  //dataString+=",";
+  //dataString+=millis();
   
   // if the file is available, write to it:
-  if (dataFile) {
+  //if (dataString.length()>132 && dataString.length()<155) {
+    dataFile = SD.open("step1.txt", FILE_WRITE);
     dataFile.println(dataString);
     dataFile.close();
-  }
+    dataString = "";
+   // Serial.println("WRITTEN!");
+  //}
   // if the file isn't open, pop up an error:
-  else {
-    Serial.println("error opening datalog.txt");
-  }
-
-  /* Wait the specified delay before requesting nex data */
+ // else{
+   // dataString+="\r\n";
+    /* Wait the specified delay before requesting nex data */
+ //   delay(BNO055_SAMPLERATE_DELAY_MS);
+   // Serial.println("Need to be longer");
+  //}
 }
