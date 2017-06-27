@@ -1,52 +1,92 @@
-%fileRight = fopen('right.txt','r');
-%fileLeft = fopen('left.txt','r');
+% importing data for right foot
+rightFile = 'Step1.TXT';
+[rAccel,rDelimeterOut] = importdata(rightFile);
 
-filename = 'Right.txt';
-[accelR,delimeterOut]=importdata('Right.txt');
+% importing data for left foot
+leftFile = 'Step1.txt';
+[lAccel,lDelimeterOut] = importdata(leftFile);
 
+% constant
 T = .023;
-V = zeros(size(accelR,1),size(accelR,2));
-D = zeros(size(accelR,1),size(accelR,2));
 
+% initializing arrays that will hold velocity and displacement data
+%  for the right foot
+rV = zeros(size(rAccel,1),size(rAccel,2));
+rD = zeros(size(rAccel,1),size(rAccel,2));
+%  and for the left foot
+lV = zeros(size(lAccel,1),size(lAccel,2));
+lD = zeros(size(lAccel,1),size(lAccel,2));
 
-mag_accelR=abs(accelR);
-
-Heel_Strike= mag_accelR< .1;
-
-
-%Solve for velocity
-% for y = 2:size(accelR,1)
-%     for w = 1:size(accelR,2)
-%         V(y,w) = V(y-1,w) + accelR(y,w)*T;     
-%     end
-% end
-
-vel = zeros(size(accelR));
-for t = 2:length(V)
-    V(t,:) = V(t-1,:) + accelR(t,:) * T;
-     if(Heel_Strike(t) == 1)
-         V(t,:) = [0 0 0];     % force zero velocity when foot stationary
+% calculating velocity data for the right foot
+rAccelMag = abs(rAccel);
+rHeelStrikes = rAccelMag < .1;
+rVel = zeros(size(rAccel));
+for rt = 2:length(rV)
+    rV(rt,:) = rV(rt-1,:) + rAccel(rt,:) * T;
+     if(rHeelStrikes(rt) == 1)
+         rV(rt,:) = [0 0 0];     % force zero velocity when foot stationary
      end
 end
 
+% calculating velocity data for the left foot
+lAccelMag = abs(lAccel);
+lHeelStrikes = lAccelMag < .1;
+lVel = zeros(size(lAccel));
+for lt = 2:length(lV)
+    lV(lt,:) = lV(lt-1,:) + lAccel(lt,:) * T;
+     if(lHeelStrikes(lt) == 1)
+         lV(lt,:) = [0 0 0];     % force zero velocity when foot stationary
+     end
+end
 
-% disp(V);
-
-%Solve for displacement
-for z = 2:size(accelR,1)
-    for y = 1:size(accelR,2)
-        D(z,y) = D(z-1,y) + V(z,y)*T;
+% calculating displacement for the right foot
+for rz = 2:size(rAccel,1)
+    for ry = 1:size(rAccel,2)
+        rD(rz,ry) = rD(rz-1,ry) + rV(rz,ry) * T;
     end
 end
 
- disp(D);
-%disp(mag_accelR);
+% calculating displacement for the left foot
+for lz = 2:size(lAccel,1)
+    for ly = 1:size(lAccel,2)
+        lD(lz,ly) = lD(lz-1,ly) + lV(lz,ly) * T;
+    end
+end
 
-plot3(D(:,1),D(:,2),D(:,3),'r')
+% displaying displacement data
+disp('------------------');
+disp('------------------');
+disp('Right Foot Displacement');
+disp(rD);
+disp('------------------');
+disp('Left Foot Displacement');
+disp(lD);
 
-% disp(sizeA);
-% %Get the magnitude of the acceleration vector
-% function f1 = mag(x,y,z)
-%     f1 = sqrt(x^2 + y^2 + z^2);
-% end
+% displaying just the heel strikes
+%TODO: find out why some of the heel strikes are 1
+disp('------------------');
+disp('Right Heel Strikes');
+disp(rHeelStrikes);
+disp('Left Heel Strikes');
+disp(lHeelStrikes);
 
+% plotting the steps for both feet on the same graph
+%TODO: fix these so that they are on the same graph
+plot3(rD(:,1),rD(:,2),rD(:,3),'r');
+%plot3(lD(:,1),lD(:,2),lD(:,3),'b');
+
+
+
+
+% 2nd method of finding where the heel strikes the ground (local minima)
+
+% large number for initializing the size of the minima arrays
+%maxSize = 2000;
+
+% local minima of the Z-axis/vertical dimension, indicating heel strikes
+%left_heel_strikes = zeros(max_size,3);
+%right_heel_strikes = zeros(max_size,3);
+
+% actually finding the minima
+%left_heel_strikes = findpeaks(-leftData(:,3));
+%right_heel_strikes = findpeaks(-rightData(:,3));
