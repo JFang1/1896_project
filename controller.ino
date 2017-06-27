@@ -35,8 +35,6 @@
 Adafruit_BNO055 bno = Adafruit_BNO055(55);
 String dataString = "";
 File dataFile;
-const int led = 8;
-const int button = 3;
 
 /**************************************************************************/
 /*
@@ -99,11 +97,11 @@ void displayCalStatus(void)
   bno.getCalibration(&system, &gyro, &accel, &mag);
 
   /* The data should be ignored until the system calibration is > 0 */
-  //Serial.print("\t");
-  //if (!system)
-  //{
-  //  Serial.print("! ");
-  //}
+  Serial.print("\t");
+  if (!system)
+  {
+    Serial.print("! ");
+  }
 
   /* Display the individual values */
   Serial.print("Sys:");
@@ -114,15 +112,6 @@ void displayCalStatus(void)
   Serial.print(accel, DEC);
   Serial.print(" M:");
   Serial.print(mag, DEC);
-
-  if(mag==3 && gyro ==3 && accel==3){
-    delay(200);
-    digitalWrite(led,HIGH);
-    delay(200);
-    digitalWrite(led,LOW);
-  }
- Serial.print("\r\n");
-  
 }
 
 /**************************************************************************/
@@ -146,7 +135,7 @@ void setup(void)
   delay(1000);
 
   /* Display some basic information on this sensor */
-  displaySensorDetails();
+  //displaySensorDetails();
 
   /* Optional: Display current status */
   displaySensorStatus();
@@ -172,12 +161,7 @@ void setup(void)
   }
   Serial.println("initialization done.");
   
-  pinMode(led,OUTPUT);
-  pinMode(button,INPUT);
 
-  while(true){
-    displayCalStatus();
-  }
 }
 
 /**************************************************************************/
@@ -204,13 +188,13 @@ void loop(void)
   //Serial.print(event.acceleration.z, 4);
   
   /* Optional: Display calibration status */
-  //displayCalStatus();
+ displayCalStatus();
 
   /* Optional: Display sensor status (debug only) */
-  //displaySensorStatus();
+  displaySensorStatus();
 
   /* New line for the next sample */
-  //Serial.println("");
+  Serial.println("");
 
   // open the file. note that only one file can be open at a time,
   // so you have to close this one before opening another.
@@ -237,4 +221,4 @@ void loop(void)
  //   delay(BNO055_SAMPLERATE_DELAY_MS);
    // Serial.println("Need to be longer");
   //}
- }
+}
