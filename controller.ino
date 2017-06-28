@@ -6,23 +6,19 @@
 
 /* This driver uses the Adafruit unified sensor library (Adafruit_Sensor),
    which provides a common 'type' for sensor data and some helper functions.
-
    To use this driver you will also need to download the Adafruit_Sensor
    library and include it in your libraries folder.
-
    You should also assign a unique ID to this sensor for use with
    the Adafruit Sensor API so that you can identify this particular
    sensor in any data logs, etc.  To assign a unique ID, simply
    provide an appropriate value in the constructor below (12345
    is used by default in this example).
-
    Connections
    ===========
    Connect SCL to analog 5
    Connect SDA to analog 4
    Connect VDD to 3-5V DC
    Connect GROUND to common ground
-
    History
    =======
    2015/MAR/03  - First release (KTOWN)
@@ -35,6 +31,8 @@
 Adafruit_BNO055 bno = Adafruit_BNO055(55);
 String dataString = "";
 File dataFile;
+const int led = 8;
+const int button = 3;
 
 /**************************************************************************/
 /*
@@ -97,11 +95,11 @@ void displayCalStatus(void)
   bno.getCalibration(&system, &gyro, &accel, &mag);
 
   /* The data should be ignored until the system calibration is > 0 */
-  Serial.print("\t");
-  if (!system)
-  {
-    Serial.print("! ");
-  }
+  //Serial.print("\t");
+  //if (!system)
+  //{
+  //  Serial.print("! ");
+  //}
 
   /* Display the individual values */
   Serial.print("Sys:");
@@ -112,6 +110,15 @@ void displayCalStatus(void)
   Serial.print(accel, DEC);
   Serial.print(" M:");
   Serial.print(mag, DEC);
+
+  if(mag==3 && gyro ==3 && accel==3){
+    delay(200);
+    digitalWrite(led,HIGH);
+    delay(200);
+    digitalWrite(led,LOW);
+  }
+ Serial.print("\r\n");
+  
 }
 
 /**************************************************************************/
@@ -135,14 +142,14 @@ void setup(void)
   delay(1000);
 
   /* Display some basic information on this sensor */
-  //displaySensorDetails();
+  displaySensorDetails();
 
   /* Optional: Display current status */
   displaySensorStatus();
 
   /* Set operation mode */
   Adafruit_BNO055::adafruit_bno055_opmode_t mode;
-  mode = Adafruit_BNO055::adafruit_bno055_opmode_t::OPERATION_MODE_NDOF;
+  mode = Adafruit_BNO055::adafruit_bno055_opmode_t::OPERATION_MODE_NDOF_FMC_OFF;
   bno.setMode(mode);
   bno.setExtCrystalUse(true);
 
@@ -161,7 +168,12 @@ void setup(void)
   }
   Serial.println("initialization done.");
   
+  pinMode(led,OUTPUT);
+  pinMode(button,INPUT);
 
+  while(true){
+    displayCalStatus();
+  }
 }
 
 /**************************************************************************/
@@ -188,13 +200,13 @@ void loop(void)
   //Serial.print(event.acceleration.z, 4);
   
   /* Optional: Display calibration status */
- displayCalStatus();
+  //displayCalStatus();
 
   /* Optional: Display sensor status (debug only) */
-  displaySensorStatus();
+  //displaySensorStatus();
 
   /* New line for the next sample */
-  Serial.println("");
+  //Serial.println("");
 
   // open the file. note that only one file can be open at a time,
   // so you have to close this one before opening another.
