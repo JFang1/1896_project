@@ -33,28 +33,11 @@ String dataString = "";
 File dataFile;
 const int led = 8;
 const int button = 3;
+uint8_t sys = 0;
+uint8_t gyro = 0;
+uint8_t accel = 0;
+uint8_t mag=0;
 
-/**************************************************************************/
-/*
-    Displays some basic information on this sensor from the unified
-    sensor API sensor_t type (see Adafruit_Sensor for more information)
-*/
-/**************************************************************************/
-void displaySensorDetails(void)
-{
-  sensor_t sensor;
-  bno.getSensor(&sensor);
-  Serial.println("------------------------------------");
-  Serial.print  ("Sensor:       "); Serial.println(sensor.name);
-  Serial.print  ("Driver Ver:   "); Serial.println(sensor.version);
-  Serial.print  ("Unique ID:    "); Serial.println(sensor.sensor_id);
-  Serial.print  ("Max Value:    "); Serial.print(sensor.max_value); Serial.println(" xxx");
-  Serial.print  ("Min Value:    "); Serial.print(sensor.min_value); Serial.println(" xxx");
-  Serial.print  ("Resolution:   "); Serial.print(sensor.resolution); Serial.println(" xxx");
-  Serial.println("------------------------------------");
-  Serial.println("");
-  delay(500);
-}
 
 /**************************************************************************/
 /*
@@ -90,20 +73,12 @@ void displayCalStatus(void)
   /* Get the four calibration values (0..3) */
   /* Any sensor data reporting 0 should be ignored, */
   /* 3 means 'fully calibrated" */
-  uint8_t system, gyro, accel, mag;
-  system = gyro = accel = mag = 0;
-  bno.getCalibration(&system, &gyro, &accel, &mag);
+  sys = gyro = accel = mag = 0;
+  bno.getCalibration(&sys, &gyro, &accel, &mag);
 
-  /* The data should be ignored until the system calibration is > 0 */
-  //Serial.print("\t");
-  //if (!system)
-  //{
-  //  Serial.print("! ");
-  //}
-
-  /* Display the individual values */
+  // Display the individual values if connected to PC
   Serial.print("Sys:");
-  Serial.print(system, DEC);
+  Serial.print(sys, DEC);
   Serial.print(" G:");
   Serial.print(gyro, DEC);
   Serial.print(" A:");
@@ -111,12 +86,15 @@ void displayCalStatus(void)
   Serial.print(" M:");
   Serial.print(mag, DEC);
 
+  //When the sensor is fully calibrated, make the LED flash
   if(mag==3 && gyro ==3 && accel==3){
     delay(200);
     digitalWrite(led,HIGH);
     delay(200);
     digitalWrite(led,LOW);
   }
+
+ //Print new line before next calibration output
  Serial.print("\r\n");
   
 }
@@ -139,15 +117,10 @@ void setup(void)
     while(1);
   }
 
-  delay(1000);
-
-  /* Display some basic information on this sensor */
-  displaySensorDetails();
-
   /* Optional: Display current status */
   displaySensorStatus();
 
-  /* Set operation mode */
+  /* Set operation mode to NDOF */
   Adafruit_BNO055::adafruit_bno055_opmode_t mode;
   mode = Adafruit_BNO055::adafruit_bno055_opmode_t::OPERATION_MODE_NDOF;
   bno.setMode(mode);
@@ -162,25 +135,43 @@ void setup(void)
   
   Serial.print("Initializing SD card...");
 
+  //Alerts us if the initialization of the SD card fails
   if (!SD.begin(10)) {
     Serial.println("initialization failed!");
     return;
   }
+
+  //Alert when SD card successfully initialized
   Serial.println("initialization done.");
   
+  
+  SD.remove("testcal.txt");
+
+  //Open File for data output
+  dataFile = SD.open("testcal.txt", FILE_WRITE);
+
+  //Set the pinModes for the led and button
   pinMode(led,OUTPUT);
   pinMode(button,INPUT);
 
+  //Infinite loop used to calibrate sensor.
+  //Can break out of loop by pressing the button set above
   while(true){
     displayCalStatus();
     if(digitalRead(button)==HIGH){
       break;  
     }
   }
+
+  //Turn the LED off to acknowledge calibration loop has been exited
   digitalWrite(led,LOW);
-  delay(5000);
+  
+  //Wait 4 seconds before starting data collection
+  delay(4000);
+
+  //Turn LED on to signal data collection has begun
   digitalWrite(led,HIGH);
-  SD.remove("testcal.txt");
+ 
 }
 
 /**************************************************************************/
@@ -191,60 +182,41 @@ void setup(void)
 /**************************************************************************/
 void loop(void)
 {
-  delay(101);
-  /* Get a new sensor event */
+  //Delay 9ms to guarantee that we are not logging data at a rate greater than 100Hz
+  delay(9);
+  
+  // Get a new sensor event
   sensors_event_t event;
   bno.getEventAcc(&event);
 
-  /* Display the floating point data */
-  //i++;
-  //Serial.print(i);
-  //Serial.print(":\t");
-  //Serial.print("X: ");
-  //Serial.print(event.acceleration.x, 4);
-  //Serial.print("\tY: ");
-  //Serial.print(event.acceleration.y, 4);
-  //Serial.print("\tZ: ");
-  //Serial.print(event.acceleration.z, 4);
-  
-  /* Optional: Display calibration status */
-  //displayCalStatus();
+  //Get calibration data to add to data string
+  bno.getCalibration(&sys, &gyro, &accel, &mag);
 
-  /* Optional: Display sensor status (debug only) */
-  //displaySensorStatus();
-
-  /* New line for the next sample */
-  //Serial.println("");
-
-  // open the file. note that only one file can be open at a time,
-  // so you have to close this one before opening another.
+  //Build Data String for Output File
   dataString+=event.acceleration.x;
   dataString+=",";
   dataString+=event.acceleration.y;
   dataString+=",";
   dataString+=event.acceleration.z;
-  //dataString+=",";
-  //dataString+=millis();
+  dataString+=",";
+  dataString+=millis();
+  dataString+=",";
+  dataString+=(sys);
   dataString+="\r\n";
-  // if the file is available, write to it:
-  //if (dataString.length()>132 && dataString.length()<155) {
-    //dataFile = SD.open("testcal.txt", FILE_WRITE);
-    //dataFile.println(dataString);
-    //dataFile.close();
-    Serial.println(dataString);
-    dataString = "";
 
-   // Serial.println("WRITTEN!");
-  //}
-  // if the file isn't open, pop up an error:
- // else{
-   // dataString+="\r\n";
-    /* Wait the specified delay before requesting nex data */
- //   delay(BNO055_SAMPLERATE_DELAY_MS);
-   // Serial.println("Need to be longer");
-  //}
+  //Write Data String to File
+  dataFile.println(dataString);
+
+  //Reset Data String to null before building next sample
+  dataString = ""; 
+
+  //When button is pressed, turn off LED and close output file
+  //Once entered, we cannot exit this loop
   if(digitalRead(button)==HIGH){
     while(true){
+      if(dataFile){
+        dataFile.close();
+      }
       digitalWrite(led,LOW);
     }
   }
