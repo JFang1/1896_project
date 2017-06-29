@@ -149,7 +149,7 @@ void setup(void)
 
   /* Set operation mode */
   Adafruit_BNO055::adafruit_bno055_opmode_t mode;
-  mode = Adafruit_BNO055::adafruit_bno055_opmode_t::OPERATION_MODE_NDOF_FMC_OFF;
+  mode = Adafruit_BNO055::adafruit_bno055_opmode_t::OPERATION_MODE_NDOF;
   bno.setMode(mode);
   bno.setExtCrystalUse(true);
 
@@ -173,7 +173,14 @@ void setup(void)
 
   while(true){
     displayCalStatus();
+    if(digitalRead(button)==HIGH){
+      break;  
+    }
   }
+  digitalWrite(led,LOW);
+  delay(5000);
+  digitalWrite(led,HIGH);
+  SD.remove("testcal.txt");
 }
 
 /**************************************************************************/
@@ -184,6 +191,7 @@ void setup(void)
 /**************************************************************************/
 void loop(void)
 {
+  delay(101);
   /* Get a new sensor event */
   sensors_event_t event;
   bno.getEventAcc(&event);
@@ -217,13 +225,15 @@ void loop(void)
   dataString+=event.acceleration.z;
   //dataString+=",";
   //dataString+=millis();
-  
+  dataString+="\r\n";
   // if the file is available, write to it:
   //if (dataString.length()>132 && dataString.length()<155) {
-    dataFile = SD.open("step1.txt", FILE_WRITE);
-    dataFile.println(dataString);
-    dataFile.close();
+    //dataFile = SD.open("testcal.txt", FILE_WRITE);
+    //dataFile.println(dataString);
+    //dataFile.close();
+    Serial.println(dataString);
     dataString = "";
+
    // Serial.println("WRITTEN!");
   //}
   // if the file isn't open, pop up an error:
@@ -233,4 +243,10 @@ void loop(void)
  //   delay(BNO055_SAMPLERATE_DELAY_MS);
    // Serial.println("Need to be longer");
   //}
+  if(digitalRead(button)==HIGH){
+    while(true){
+      digitalWrite(led,LOW);
+    }
+  }
+  
 }
