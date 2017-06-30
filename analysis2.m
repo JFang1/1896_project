@@ -1,3 +1,8 @@
+% NOTES: 
+%  - We MUST keep track of which file belongs to which foot
+%  - We are assuming x and y are the dimensions of the floor/
+%    horizontal plane (and z is the vertical dimension)
+
 % importing data for right foot
 rightFile = 'Step1.TXT';
 [rAccel,rDelimeterOut] = importdata(rightFile);
@@ -53,27 +58,47 @@ for lz = 2:size(lAccel,1)
     end
 end
 
+% determining individual stride lengths . . . 
+
+% array marker for right and left heel strike data in x+y dimensions
+rStrideD = zeros(size(rAccel,1), 2);
+lStrideD = zeros(size(lAccel,1), 2);
+% separate iterators
+rj = 1;
+lj = 1;
+
+% finding the displacements at heel strike - right foot
+for ri = 2:size(rAccel,1) % for every sample
+    if rV(ri,1) == 0 & rV(ri,2) == 0 & rV(ri,3) == 0 % if heelstrike
+        rStrideD(rj,1) = rD(ri,1); % x dimension of displacement
+        rStrideD(rj,2) = rD(ri,2); % y dimension of displacement
+        rj = rj + 1; % increment row in rStrideD
+    end
+end
+% finding the displacements at heel strike - left foot
+for li = 2:size(lAccel,1) % for every sample
+    if lV(li,1) == 0 & lV(li,2) == 0 & lV(li,3) == 0 % if heelstrike
+        lStrideD(lj,1) = lD(li,1); % x dimension of displacement
+        lStrideD(lj,2) = lD(li,2); % y dimension of displacement
+        lj = lj + 1; % increment row in lStrideD
+    end
+end
+
 % displaying displacement data
 disp('------------------');
 disp('------------------');
-disp('Right Foot Displacement');
+%disp('Right Foot Displacement');
 disp(rD);
 disp('------------------');
 disp('Left Foot Displacement');
-disp(lD);
-
-% displaying just the heel strikes
-%TODO: find out why some of the heel strikes are 1
-disp('------------------');
-disp('Right Heel Strikes');
-disp(rHeelStrikes);
-disp('Left Heel Strikes');
-disp(lHeelStrikes);
+%disp(lD);
 
 % plotting the steps for both feet on the same graph
 %TODO: fix these so that they are on the same graph
+view(3);
 plot3(rD(:,1),rD(:,2),rD(:,3),'r');
-%plot3(lD(:,1),lD(:,2),lD(:,3),'b');
+hold on;
+plot3(lD(:,1),lD(:,2),lD(:,3),'b'); % if the data is the same, only the latter curve will appear
 
 
 
