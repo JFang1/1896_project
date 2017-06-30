@@ -84,17 +84,24 @@ for li = 2:size(lAccel,1) % for every sample
     end
 end
 
+% determining individual step lengths . . .
+
+% re-initialize the iterators to 1
+rj = 1;
+lj = 1;
+
+% create vectors for step distance
+
 % displaying displacement data
 disp('------------------');
 disp('------------------');
 %disp('Right Foot Displacement');
-disp(rD);
+disp(rStrideD);
 disp('------------------');
 disp('Left Foot Displacement');
-%disp(lD);
+disp(lStrideD);
 
-% plotting the steps for both feet on the same graph
-%TODO: fix these so that they are on the same graph
+% plotting the step traces for both feet on the same graph
 view(3);
 plot3(rD(:,1),rD(:,2),rD(:,3),'r');
 hold on;
