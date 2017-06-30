@@ -91,11 +91,15 @@ rj = 1;
 lj = 1;
 
 % create vectors for step distance
+rStepD = zeros(size(rAccel,1), 2);
+lStepD = zeros(size(lAccel,1), 2); % TODO: Figure out calculations--may not need 2nd dimension
+
+for rj = 2:
 
 % displaying displacement data
 disp('------------------');
 disp('------------------');
-%disp('Right Foot Displacement');
+disp('Right Foot Displacement');
 disp(rStrideD);
 disp('------------------');
 disp('Left Foot Displacement');
