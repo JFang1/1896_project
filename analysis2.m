@@ -4,15 +4,15 @@
 %    horizontal plane (and z is the vertical dimension)
 
 % importing data for right foot
-rightFile = 'Step1.TXT';
+rightFile = 'RT_FOOT_21FT.TXT';
 [rAccel,rDelimeterOut] = importdata(rightFile);
 
 % importing data for left foot
-leftFile = 'Step1.txt';
+leftFile = 'LT_FOOT_21FT.txt';
 [lAccel,lDelimeterOut] = importdata(leftFile);
 
 % constant
-T = .023;
+T = .012;
 
 % initializing arrays that will hold velocity and displacement data
 %  for the right foot
@@ -29,7 +29,7 @@ rVel = zeros(size(rAccel));
 for rt = 2:length(rV)
     rV(rt,:) = rV(rt-1,:) + rAccel(rt,:) * T;
      if(rHeelStrikes(rt) == 1)
-         rV(rt,:) = [0 0 0];     % force zero velocity when foot stationary
+         rV(rt,:) = [0 0 0 0 0];     % force zero velocity when foot stationary
      end
 end
 
@@ -40,7 +40,7 @@ lVel = zeros(size(lAccel));
 for lt = 2:length(lV)
     lV(lt,:) = lV(lt-1,:) + lAccel(lt,:) * T;
      if(lHeelStrikes(lt) == 1)
-         lV(lt,:) = [0 0 0];     % force zero velocity when foot stationary
+         lV(lt,:) = [0 0 0 0 0];     % force zero velocity when foot stationary
      end
 end
 
@@ -105,7 +105,7 @@ disp(lStrideD);
 view(3);
 plot3(rD(:,1),rD(:,2),rD(:,3),'r');
 hold on;
-plot3(lD(:,1),lD(:,2),lD(:,3),'b'); % if the data is the same, only the latter curve will appear
+plot3(-lD(:,1),lD(:,2),lD(:,3),'b'); % if the data is the same, only the latter curve will appear
 
 
 
@@ -122,3 +122,10 @@ plot3(lD(:,1),lD(:,2),lD(:,3),'b'); % if the data is the same, only the latter c
 % actually finding the minima
 %left_heel_strikes = findpeaks(-leftData(:,3));
 %right_heel_strikes = findpeaks(-rightData(:,3));
+figure;
+plot(rD(:,1),rD(:,2),'r',-lD(:,1),lD(:,2),'b');
+
+
+
+
+
