@@ -102,6 +102,7 @@ disp('Left Foot Displacement');
 disp(lStrideD);
 
 % plotting the step traces for both feet on the same graph
+figure(1);
 view(3);
 plot3(rD(:,1),rD(:,2),rD(:,3),'r');
 hold on;
@@ -122,7 +123,7 @@ plot3(-lD(:,1),lD(:,2),lD(:,3),'b'); % if the data is the same, only the latter 
 % actually finding the minima
 %left_heel_strikes = findpeaks(-leftData(:,3));
 %right_heel_strikes = findpeaks(-rightData(:,3));
-figure;
+figure(2);
 plot(rD(:,1),rD(:,2),'r',-lD(:,1),lD(:,2),'b');
 
 
