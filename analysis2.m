@@ -2,6 +2,7 @@
 %  - We MUST keep track of which file belongs to which foot
 %  - We are assuming x and y are the dimensions of the floor/
 %    horizontal plane (and z is the vertical dimension)
+%  - The patient MUST start with both feet at the same displacement
 
 % importing data for right foot
 rightFile = 'RT_FOOT_21FT.TXT';
@@ -40,7 +41,7 @@ lVel = zeros(size(lAccel));
 for lt = 2:length(lV)
     lV(lt,:) = lV(lt-1,:) + lAccel(lt,:) * T;
      if(lHeelStrikes(lt) == 1)
-         lV(lt,:) = [0 0 0 0 0];     % force zero velocity when foot stationary
+         lV(lt,:) = [0 0 0 0 0]; % force zero velocity when foot stationary
      end
 end
 
@@ -61,8 +62,8 @@ end
 % determining individual stride lengths . . . 
 
 % array marker for right and left heel strike data in x+y dimensions
-rStrideD = zeros(size(rAccel,1), 2);
-lStrideD = zeros(size(lAccel,1), 2);
+rStrideDZ = zeros(size(rAccel,1), 2);
+lStrideDZ = zeros(size(lAccel,1), 2);
 % separate iterators
 rj = 1;
 lj = 1;
@@ -70,16 +71,16 @@ lj = 1;
 % finding the displacements at heel strike - right foot
 for ri = 2:size(rAccel,1) % for every sample
     if rV(ri,1) == 0 & rV(ri,2) == 0 & rV(ri,3) == 0 % if heelstrike
-        rStrideD(rj,1) = rD(ri,1); % x dimension of displacement
-        rStrideD(rj,2) = rD(ri,2); % y dimension of displacement
+        rStrideDZ(rj,1) = rD(ri,1); % x dimension of displacement
+        rStrideDZ(rj,2) = rD(ri,2); % y dimension of displacement
         rj = rj + 1; % increment row in rStrideD
     end
 end
 % finding the displacements at heel strike - left foot
 for li = 2:size(lAccel,1) % for every sample
     if lV(li,1) == 0 & lV(li,2) == 0 & lV(li,3) == 0 % if heelstrike
-        lStrideD(lj,1) = lD(li,1); % x dimension of displacement
-        lStrideD(lj,2) = lD(li,2); % y dimension of displacement
+        lStrideDZ(lj,1) = lD(li,1); % x dimension of displacement
+        lStrideDZ(lj,2) = lD(li,2); % y dimension of displacement
         lj = lj + 1; % increment row in lStrideD
     end
 end
@@ -90,11 +91,48 @@ end
 rj = 1;
 lj = 1;
 
-% create vectors for step distance
-rStepD = zeros(size(rAccel,1), 2);
-lStepD = zeros(size(lAccel,1), 2); % TODO: Figure out calculations--may not need 2nd dimension
+% find where the steps start in rStrideD
+for ri = 1:size(rAccel,1)
+    if rV(ri,1) == 0 & rV(ri,2) == 0 & rV(ri,3) == 0
+        rj = ri; % rj will be index of last set of zeros before step
+    end
+end
 
-for rj = 2:
+% find where the steps start in lStrideD
+for li = 1:size(lAccel,1)
+    if lV(li,1) == 0 & lV(li,2) == 0 & lV(li,3) == 0
+        lj = li; % lj will be index of last set of zeros before step
+    end
+end
+
+% converting cumulative distances to individual stride lengths along x,y
+for ri = size(rD,1)-rj:1
+    rD(ri,1) = rD(ri,1) - rD(ri-1,1);
+    rD(ri,2) = rD(ri,2) - rD(ri-1,2);
+end
+
+for li = size(lD,1)-lj:1
+    lD(li,1) = lD(li,1) - lD(li-1,1);
+    lD(li,2) = lD(li,2) - lD(li-1,2);
+end
+
+% create vectors for stride distance in 1 dimension
+% NOTE: This assumes walking in a straight line, no turning
+rStrideD = zeros(size(rAccel,1)-rj+1, 2); % mathematically correct to add 1
+lStrideD = zeros(size(lAccel,1)-lj+1, 2); % TODO: may not need 2nd dimension
+
+for ri = 1:size(rStrideD,1)
+    rStrideD(ri,1) = sqrt(rD(rj,1)^2 + rD(rj,2)^2);
+end
+
+for li = 1:size(lStrideD,1)
+    lStrideD(li,1) = sqrt(lD(lj,1)^2 + lD(lj,2)^2);
+end
+
+% determininig which foot stepped first
+temp = 0;
+rightFirst = -1;
+
 
 % displaying displacement data
 disp('------------------');
@@ -112,7 +150,8 @@ plot3(rD(:,1),rD(:,2),rD(:,3),'r');
 hold on;
 plot3(-lD(:,1),lD(:,2),lD(:,3),'b'); % if the data is the same, only the latter curve will appear
 
-
+figure(2);
+plot(rD(:,1),rD(:,2),'r',-lD(:,1),lD(:,2),'b');
 
 
 % 2nd method of finding where the heel strikes the ground (local minima)
@@ -127,10 +166,3 @@ plot3(-lD(:,1),lD(:,2),lD(:,3),'b'); % if the data is the same, only the latter 
 % actually finding the minima
 %left_heel_strikes = findpeaks(-leftData(:,3));
 %right_heel_strikes = findpeaks(-rightData(:,3));
-figure(2);
-plot(rD(:,1),rD(:,2),'r',-lD(:,1),lD(:,2),'b');
-
-
-
-
-
