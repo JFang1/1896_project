@@ -59,6 +59,16 @@ for lz = 2:size(lAccel,1)
     end
 end
 
+disp('---------------------');
+disp('---------------------');
+disp('---------------------');
+disp('rD:');
+disp(rD);
+disp('---------------------');
+disp('lD:');
+disp(lD);
+disp('---------------------');
+
 % determining individual stride lengths . . . 
 
 % array marker for right and left heel strike data in x+y dimensions
@@ -84,6 +94,14 @@ for li = 2:size(lAccel,1) % for every sample
         lj = lj + 1; % increment row in lStrideD
     end
 end
+
+disp('---------------------');
+disp('Right foot displacements at heel strike:');
+disp(rStrideDZ);
+disp('---------------------');
+disp('Left foot displacements at heel strike:');
+disp(lStrideDZ);
+disp('---------------------');
 
 % determining individual step lengths . . .
 
@@ -119,23 +137,36 @@ end
 % create vectors for stride distance in 1 dimension
 % NOTE: This assumes walking in a straight line, no turning
 rStrideD = zeros(size(rAccel,1)-rj+1, 2); % mathematically correct to add 1
-lStrideD = zeros(size(lAccel,1)-lj+1, 2); % TODO: may not need 2nd dimension
+lStrideD = zeros(size(lAccel,1)-lj+1);
 
-for ri = 1:size(rStrideD,1)
-    rStrideD(ri,1) = sqrt(rD(rj,1)^2 + rD(rj,2)^2);
+for ri = 1:size(rStrideD)
+    rStrideD(ri) = sqrt(rD(rj,1)^2 + rD(rj,2)^2);
 end
 
-for li = 1:size(lStrideD,1)
-    lStrideD(li,1) = sqrt(lD(lj,1)^2 + lD(lj,2)^2);
+for li = 1:size(lStrideD)
+    lStrideD(li) = sqrt(lD(lj,1)^2 + lD(lj,2)^2);
 end
 
 % determininig which foot stepped first
 temp = 0;
 rightFirst = -1;
+if lStrideD(1) < rStrideD(1) % left foot stepped first
+    rightFirst = 0;
+else % right foot stepped first
+    rightFirst = 1;
+end
+
+if rightFirst == 1 % if stepped with right foot first
+    for li = 2:2:size(lStrideD)
+        lStrideD(li) = lStrideD(li) - rStrideD(li);
+        rStrideD(li+1) = rStrideD(li+1) - lStrideD(li);
+    end
+else
+    
+end
 
 
 % displaying displacement data
-disp('------------------');
 disp('------------------');
 disp('Right Foot Displacement');
 disp(rStrideD);
@@ -143,15 +174,15 @@ disp('------------------');
 disp('Left Foot Displacement');
 disp(lStrideD);
 
-% plotting the step traces for both feet on the same graph
-figure(1);
-view(3);
-plot3(rD(:,1),rD(:,2),rD(:,3),'r');
-hold on;
-plot3(-lD(:,1),lD(:,2),lD(:,3),'b'); % if the data is the same, only the latter curve will appear
-
-figure(2);
-plot(rD(:,1),rD(:,2),'r',-lD(:,1),lD(:,2),'b');
+% % plotting the step traces for both feet on the same graph
+% figure(1);
+% view(3);
+% plot3(rD(:,1),rD(:,2),rD(:,3),'r');
+% hold on;
+% plot3(-lD(:,1),lD(:,2),lD(:,3),'b'); % if the data is the same, only the latter curve will appear
+% 
+% figure(2);
+% plot(rD(:,1),rD(:,2),'r',-lD(:,1),lD(:,2),'b');
 
 
 % 2nd method of finding where the heel strikes the ground (local minima)
