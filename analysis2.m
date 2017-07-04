@@ -17,16 +17,16 @@ T = .012;
 
 % initializing arrays that will hold velocity and displacement data
 %  for the right foot
-rV = zeros(size(rAccel,1),size(rAccel,2));
-rD = zeros(size(rAccel,1),size(rAccel,2));
+rV = zeros(size(rAccel,1),3); % 3 columns, for x/y/z
+rD = zeros(size(rAccel,1),3);
 %  and for the left foot
-lV = zeros(size(lAccel,1),size(lAccel,2));
-lD = zeros(size(lAccel,1),size(lAccel,2));
+lV = zeros(size(lAccel,1),3);
+lD = zeros(size(lAccel,1),3);
 
 % calculating velocity data for the right foot
 rAccelMag = abs(rAccel);
 rHeelStrikes = rAccelMag < .1;
-rVel = zeros(size(rAccel));
+rV = zeros(size(rAccel));
 for rt = 2:length(rV)
     rV(rt,:) = rV(rt-1,:) + rAccel(rt,:) * T;
      if(rHeelStrikes(rt) == 1)
@@ -37,7 +37,7 @@ end
 % calculating velocity data for the left foot
 lAccelMag = abs(lAccel);
 lHeelStrikes = lAccelMag < .1;
-lVel = zeros(size(lAccel));
+lV = zeros(size(lAccel));
 for lt = 2:length(lV)
     lV(lt,:) = lV(lt-1,:) + lAccel(lt,:) * T;
      if(lHeelStrikes(lt) == 1)
