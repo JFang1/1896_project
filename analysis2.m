@@ -46,51 +46,51 @@ for lt = 2:length(lV)
 end
 
 % calculating displacement for the right foot
-for rz = 2:size(rAccel,1)
+for ri = 2:size(rAccel,1)
     for ry = 1:size(rAccel,2)
-        rD(rz,ry) = rD(rz-1,ry) + rV(rz,ry) * T;
+        rD(ri,ry) = rD(ri-1,ry) + rV(ri,ry) * T;
     end
 end
 
 % calculating displacement for the left foot
-for lz = 2:size(lAccel,1)
+for li = 2:size(lAccel,1)
     for ly = 1:size(lAccel,2)
-        lD(lz,ly) = lD(lz-1,ly) + lV(lz,ly) * T;
+        lD(li,ly) = lD(li-1,ly) + lV(li,ly) * T;
     end
 end
 
 disp('---------------------');
 disp('---------------------');
 disp('---------------------');
-disp('rD:');
+disp('Right foot displacement (rD):');
 disp(rD);
 disp('---------------------');
-disp('lD:');
+disp('Left foot displacement (lD):');
 disp(lD);
 disp('---------------------');
 
 % determining individual stride lengths . . . 
 
-% array marker for right and left heel strike data in x+y dimensions
-rStrideDZ = zeros(size(rAccel,1), 2);
-lStrideDZ = zeros(size(lAccel,1), 2);
-% separate iterators
+% array marker for right and left heel strike data in x+z dimensions
+rStrideD = zeros(size(rAccel,1), 2);
+lStrideD = zeros(size(lAccel,1), 2);
+% iterators
 rj = 1;
 lj = 1;
 
 % finding the displacements at heel strike - right foot
-for ri = 2:size(rAccel,1) % for every sample
+for ri = 1:size(rAccel,1) % for every sample
     if rV(ri,1) == 0 & rV(ri,2) == 0 & rV(ri,3) == 0 % if heelstrike
-        rStrideDZ(rj,1) = rD(ri,1); % x dimension of displacement
-        rStrideDZ(rj,2) = rD(ri,2); % y dimension of displacement
+        rStrideD(rj,1) = rD(ri,1); % x dimension of displacement
+        rStrideD(rj,2) = rD(ri,3); % z dimension of displacement
         rj = rj + 1; % increment row in rStrideD
     end
 end
 % finding the displacements at heel strike - left foot
 for li = 2:size(lAccel,1) % for every sample
     if lV(li,1) == 0 & lV(li,2) == 0 & lV(li,3) == 0 % if heelstrike
-        lStrideDZ(lj,1) = lD(li,1); % x dimension of displacement
-        lStrideDZ(lj,2) = lD(li,2); % y dimension of displacement
+        lStrideD(lj,1) = lD(li,1); % x dimension of displacement
+        lStrideD(lj,2) = lD(li,3); % z dimension of displacement
         lj = lj + 1; % increment row in lStrideD
     end
 end
