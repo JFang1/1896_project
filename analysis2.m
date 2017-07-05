@@ -12,9 +12,6 @@ rightFile = 'RT_FOOT_21FT.TXT';
 leftFile = 'LT_FOOT_21FT.txt';
 [lAccel,lDelimeterOut] = importdata(leftFile);
 
-% constant
-T = .012;
-
 % initializing arrays that will hold velocity and displacement data
 %  for the right foot
 rV = zeros(size(rAccel,1),3); % 3 columns, for x/y/z
@@ -22,39 +19,44 @@ rD = zeros(size(rAccel,1),3);
 %  and for the left foot
 lV = zeros(size(lAccel,1),3);
 lD = zeros(size(lAccel,1),3);
+% initialize array for time intervals
+rT = zeros(size(rAccel,1),1);
+lT = zeros(size(lAccel,1),1);
 
 % calculating velocity data for the right foot
 rAccelMag = abs(rAccel);
 rHeelStrikes = rAccelMag < .1;
-rV = zeros(size(rAccel));
-for rt = 2:length(rV)
-    rV(rt,:) = rV(rt-1,:) + rAccel(rt,:) * T;
-     if(rHeelStrikes(rt) == 1)
-         rV(rt,:) = [0 0 0 0 0];     % force zero velocity when foot stationary
+for w = 2:length(rV)
+    %get time displacement for right foot
+    rT(w)= rAccel(w,4) - rAccel(w-1,4);
+    rV(w,:) = rV(w-1,:) + rAccel(w,1:3) * rT(w);
+     if(rHeelStrikes(w) == 1)
+         rV(w,:) = [0 0 0];     % force zero velocity when foot stationary
      end
 end
 
 % calculating velocity data for the left foot
 lAccelMag = abs(lAccel);
 lHeelStrikes = lAccelMag < .1;
-lV = zeros(size(lAccel));
-for lt = 2:length(lV)
-    lV(lt,:) = lV(lt-1,:) + lAccel(lt,:) * T;
-     if(lHeelStrikes(lt) == 1)
-         lV(lt,:) = [0 0 0 0 0]; % force zero velocity when foot stationary
+for w = 2:length(lV)
+    %get time displacement for right foot
+    rT(w)= rAccel(w,4) - rAccel(w-1,4);
+    lV(w,:) = lV(w-1,:) + lAccel(w,1:3) * T;
+     if(lHeelStrikes(w) == 1)
+         lV(w,:) = [0 0 0]; % force zero velocity when foot stationary
      end
 end
 
 % calculating displacement for the right foot
 for ri = 2:size(rAccel,1)
-    for ry = 1:size(rAccel,2)
-        rD(ri,ry) = rD(ri-1,ry) + rV(ri,ry) * T;
+    for ry = 1:3
+        rD(ri,ry) = rD(ri-1,ry) + rV(ri,ry) * T;   
     end
 end
 
 % calculating displacement for the left foot
 for li = 2:size(lAccel,1)
-    for ly = 1:size(lAccel,2)
+    for ly = 1:3
         lD(li,ly) = lD(li-1,ly) + lV(li,ly) * T;
     end
 end
@@ -97,10 +99,10 @@ end
 
 disp('---------------------');
 disp('Right foot displacements at heel strike:');
-disp(rStrideDZ);
+disp(rStrideD);
 disp('---------------------');
 disp('Left foot displacements at heel strike:');
-disp(lStrideDZ);
+disp(lStrideD);
 disp('---------------------');
 
 % determining individual step lengths . . .
@@ -173,7 +175,6 @@ disp(rStrideD);
 disp('------------------');
 disp('Left Foot Displacement');
 disp(lStrideD);
-
 % % plotting the step traces for both feet on the same graph
 % figure(1);
 % view(3);
