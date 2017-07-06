@@ -40,8 +40,8 @@ lAccelMag = abs(lAccel);
 lHeelStrikes = lAccelMag < .1;
 for w = 2:length(lV)
     %get time displacement for right foot
-    rT(w)= rAccel(w,4) - rAccel(w-1,4);
-    lV(w,:) = lV(w-1,:) + lAccel(w,1:3) * T;
+    lT(w)= rAccel(w,4) - rAccel(w-1,4);
+    lV(w,:) = lV(w-1,:) + lAccel(w,1:3) * lT(w);
      if(lHeelStrikes(w) == 1)
          lV(w,:) = [0 0 0]; % force zero velocity when foot stationary
      end
@@ -50,14 +50,14 @@ end
 % calculating displacement for the right foot
 for ri = 2:size(rAccel,1)
     for ry = 1:3
-        rD(ri,ry) = rD(ri-1,ry) + rV(ri,ry) * T;   
+        rD(ri,ry) = rD(ri-1,ry) + rV(ri,ry) * rT(ri);   
     end
 end
 
 % calculating displacement for the left foot
 for li = 2:size(lAccel,1)
     for ly = 1:3
-        lD(li,ly) = lD(li-1,ly) + lV(li,ly) * T;
+        lD(li,ly) = lD(li-1,ly) + lV(li,ly) * lT(w);
     end
 end
 
@@ -183,7 +183,7 @@ disp(lStrideD);
 % plot3(-lD(:,1),lD(:,2),lD(:,3),'b'); % if the data is the same, only the latter curve will appear
 % 
 % figure(2);
-% plot(rD(:,1),rD(:,2),'r',-lD(:,1),lD(:,2),'b');
+ plot(rD(:,1),rD(:,2),'r',-lD(:,1),lD(:,2),'b');
 
 
 % 2nd method of finding where the heel strikes the ground (local minima)
