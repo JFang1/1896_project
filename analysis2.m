@@ -25,7 +25,7 @@ lT = zeros(size(lAccel,1),1);
 
 % calculating velocity data for the right foot
 rAccelMag = abs(rAccel);
-rHeelStrikes = rAccelMag < .1;
+rHeelStrikes = rAccelMag(:,1) < .1;
 for w = 2:length(rV)
     %get time displacement for right foot
     rT(w)= rAccel(w,4) - rAccel(w-1,4);
@@ -37,7 +37,7 @@ end
 
 % calculating velocity data for the left foot
 lAccelMag = abs(lAccel);
-lHeelStrikes = lAccelMag < .1;
+lHeelStrikes = lAccelMag(:,1) < .1;
 for w = 2:length(lV)
     %get time displacement for right foot
     lT(w)= rAccel(w,4) - rAccel(w-1,4);
