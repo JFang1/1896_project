@@ -29,7 +29,7 @@ rHeelStrikes = rAccelMag(:,1) < .1;
 for w = 2:length(rV)
     %get time displacement for right foot
     rT(w)= rAccel(w,4) - rAccel(w-1,4);
-    rV(w,:) = rV(w-1,:) + rAccel(w,1:3) * rT(w);
+    rV(w,:) = rV(w-1,:) + rAccel(w,1:3) * rT(w)*(.001);
      if(rHeelStrikes(w) == 1)
          rV(w,:) = [0 0 0];     % force zero velocity when foot stationary
      end
@@ -41,7 +41,7 @@ lHeelStrikes = lAccelMag(:,1) < .1;
 for w = 2:length(lV)
     %get time displacement for right foot
     lT(w)= rAccel(w,4) - rAccel(w-1,4);
-    lV(w,:) = lV(w-1,:) + lAccel(w,1:3) * lT(w);
+    lV(w,:) = lV(w-1,:) + lAccel(w,1:3) * lT(w)*(.001);
      if(lHeelStrikes(w) == 1)
          lV(w,:) = [0 0 0]; % force zero velocity when foot stationary
      end
@@ -50,14 +50,14 @@ end
 % calculating displacement for the right foot
 for ri = 2:size(rAccel,1)
     for ry = 1:3
-        rD(ri,ry) = rD(ri-1,ry) + rV(ri,ry) * rT(ri);   
+        rD(ri,ry) = rD(ri-1,ry) + rV(ri,ry) * rT(ri)*(.001);   
     end
 end
 
 % calculating displacement for the left foot
 for li = 2:size(lAccel,1)
     for ly = 1:3
-        lD(li,ly) = lD(li-1,ly) + lV(li,ly) * lT(w);
+        lD(li,ly) = lD(li-1,ly) + lV(li,ly) * lT(w)*(.001);
     end
 end
 
