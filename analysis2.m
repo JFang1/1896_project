@@ -1,7 +1,8 @@
 % NOTES: 
 %  - We MUST keep track of which file belongs to which foot
-%  - We are assuming x and y are the dimensions of the floor/
-%    horizontal plane (and z is the vertical dimension)
+%  - We are assuming x and z are the dimensions of the floor/
+%    horizontal plane (and y is the vertical dimension)
+%  - x will be the direction of walking
 %  - The patient MUST start with both feet at the same displacement
 
 % importing data for right foot
@@ -74,6 +75,9 @@ disp('---------------------');
 % determining individual stride lengths . . . 
 
 % array marker for right and left heel strike data in x+z dimensions
+%  2nd dimension (for z) is not needed if using only x for displacement
+%  I'm keeping the 2nd dimension for now just in case we want to examine
+%  other calculation results.
 rStrideD = zeros(size(rAccel,1), 2);
 lStrideD = zeros(size(lAccel,1), 2);
 % iterators
@@ -84,7 +88,7 @@ lj = 1;
 for ri = 1:size(rAccel,1) % for every sample
     if rV(ri,1) == 0 & rV(ri,2) == 0 & rV(ri,3) == 0 % if heelstrike
         rStrideD(rj,1) = rD(ri,1); % x dimension of displacement
-        rStrideD(rj,2) = rD(ri,3); % z dimension of displacement
+        % rStrideD(rj,2) = rD(ri,3); % z dimension of displacement
         rj = rj + 1; % increment row in rStrideD
     end
 end
@@ -92,80 +96,92 @@ end
 for li = 2:size(lAccel,1) % for every sample
     if lV(li,1) == 0 & lV(li,2) == 0 & lV(li,3) == 0 % if heelstrike
         lStrideD(lj,1) = lD(li,1); % x dimension of displacement
-        lStrideD(lj,2) = lD(li,3); % z dimension of displacement
+        % lStrideD(lj,2) = lD(li,3); % z dimension of displacement
         lj = lj + 1; % increment row in lStrideD
     end
 end
 
+% Getting rid of repetition in the stride data
+rStrideDExtracted = zeros(size(rStrideD)/5, 1); % The 5 is arbitrary
+lStrideDExtracted = zeros(size(lStrideD)/5, 1);
+
 disp('---------------------');
-disp('Right foot displacements at heel strike:');
-disp(rStrideD);
+disp('Right foot heelstrike displacements with repetition:');
+disp(rStrideDExtracted);
 disp('---------------------');
-disp('Left foot displacements at heel strike:');
-disp(lStrideD);
+disp('Left foot heelstrike displacements with repetition:');
+disp(lStrideDExtracted);
 disp('---------------------');
 
-% determining individual step lengths . . .
+disp('---------------------');
+disp('Right foot heelstrike displacements without repetition:');
+disp(rStrideDExtracted);
+disp('---------------------');
+disp('Left foot heelstrike displacements without repetition:');
+disp(lStrideDExtracted);
+disp('---------------------');
 
-% re-initialize the iterators to 1
-rj = 1;
-lj = 1;
-
-% find where the steps start in rStrideD
-for ri = 1:size(rAccel,1)
-    if rV(ri,1) == 0 & rV(ri,2) == 0 & rV(ri,3) == 0
-        rj = ri; % rj will be index of last set of zeros before step
-    end
-end
-
-% find where the steps start in lStrideD
-for li = 1:size(lAccel,1)
-    if lV(li,1) == 0 & lV(li,2) == 0 & lV(li,3) == 0
-        lj = li; % lj will be index of last set of zeros before step
-    end
-end
-
-% converting cumulative distances to individual stride lengths along x,y
-for ri = size(rD,1)-rj:1
-    rD(ri,1) = rD(ri,1) - rD(ri-1,1);
-    rD(ri,2) = rD(ri,2) - rD(ri-1,2);
-end
-
-for li = size(lD,1)-lj:1
-    lD(li,1) = lD(li,1) - lD(li-1,1);
-    lD(li,2) = lD(li,2) - lD(li-1,2);
-end
-
-% create vectors for stride distance in 1 dimension
-% NOTE: This assumes walking in a straight line, no turning
-rStrideD = zeros(size(rAccel,1)-rj+1, 2); % mathematically correct to add 1
-lStrideD = zeros(size(lAccel,1)-lj+1);
-
-for ri = 1:size(rStrideD)
-    rStrideD(ri) = sqrt(rD(rj,1)^2 + rD(rj,2)^2);
-end
-
-for li = 1:size(lStrideD)
-    lStrideD(li) = sqrt(lD(lj,1)^2 + lD(lj,2)^2);
-end
-
-% determininig which foot stepped first
-temp = 0;
-rightFirst = -1;
-if lStrideD(1) < rStrideD(1) % left foot stepped first
-    rightFirst = 0;
-else % right foot stepped first
-    rightFirst = 1;
-end
-
-if rightFirst == 1 % if stepped with right foot first
-    for li = 2:2:size(lStrideD)
-        lStrideD(li) = lStrideD(li) - rStrideD(li);
-        rStrideD(li+1) = rStrideD(li+1) - lStrideD(li);
-    end
-else
-    
-end
+% % determining individual step lengths . . .
+% 
+% % re-initialize the iterators to 1
+% rj = 1;
+% lj = 1;
+% 
+% % find where the steps start in rStrideD
+% for ri = 1:size(rAccel,1)
+%     if rV(ri,1) == 0 & rV(ri,2) == 0 & rV(ri,3) == 0
+%         rj = ri; % rj will be index of last set of zeros before step
+%     end
+% end
+% 
+% % find where the steps start in lStrideD
+% for li = 1:size(lAccel,1)
+%     if lV(li,1) == 0 & lV(li,2) == 0 & lV(li,3) == 0
+%         lj = li; % lj will be index of last set of zeros before step
+%     end
+% end
+% 
+% % converting cumulative distances to individual stride lengths along x,y
+% for ri = size(rD,1)-rj:1
+%     rD(ri,1) = rD(ri,1) - rD(ri-1,1);
+%     rD(ri,2) = rD(ri,2) - rD(ri-1,2);
+% end
+% 
+% for li = size(lD,1)-lj:1
+%     lD(li,1) = lD(li,1) - lD(li-1,1);
+%     lD(li,2) = lD(li,2) - lD(li-1,2);
+% end
+% 
+% % create vectors for stride distance in 1 dimension
+% % NOTE: This assumes walking in a straight line, no turning
+% rStrideD = zeros(size(rAccel,1)-rj+1, 2); % mathematically correct to add 1
+% lStrideD = zeros(size(lAccel,1)-lj+1);
+% 
+% for ri = 1:size(rStrideD)
+%     rStrideD(ri) = sqrt(rD(rj,1)^2 + rD(rj,2)^2);
+% end
+% 
+% for li = 1:size(lStrideD)
+%     lStrideD(li) = sqrt(lD(lj,1)^2 + lD(lj,2)^2);
+% end
+% 
+% % determininig which foot stepped first
+% temp = 0;
+% rightFirst = -1;
+% if lStrideD(1) < rStrideD(1) % left foot stepped first
+%     rightFirst = 0;
+% else % right foot stepped first
+%     rightFirst = 1;
+% end
+% 
+% if rightFirst == 1 % if stepped with right foot first
+%     for li = 2:2:size(lStrideD)
+%         lStrideD(li) = lStrideD(li) - rStrideD(li);
+%         rStrideD(li+1) = rStrideD(li+1) - lStrideD(li);
+%     end
+% else
+%     
+% end
 
 
 % displaying displacement data
