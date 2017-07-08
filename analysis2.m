@@ -146,8 +146,8 @@ for li = lj0+5:size(lStrideD)
 end
 
 % removing close duplicates
-rStrideUndup = zeros(floor(rSize/3),1);
-lStrideUndup = zeros(floor(lSize/3),1);
+rStrideUndup = zeros(floor(rSize/5),1);
+lStrideUndup = zeros(floor(lSize/5),1);
 rj = 2;
 lj = 2;
 
@@ -162,7 +162,7 @@ for ri = 2:rSize
 end
     
 for li = 2:lSize
-    if ~(abs(rStrideDExtracted(li)) < abs(lStrideUndup(lj-1))+0.02 & abs(lStrideDExtracted(li)) > abs(lStrideUndup(lj-1))-0.02)
+    if ~(abs(lStrideDExtracted(li)) < abs(lStrideUndup(lj-1))+0.02 & abs(lStrideDExtracted(li)) > abs(lStrideUndup(lj-1))-0.02)
         lStrideUndup(lj) = lStrideDExtracted(li);
         lj = lj + 1;
         fprintf('O: %d %d\n', lStrideDExtracted(li), lStrideUndup(lj-1));
@@ -226,11 +226,11 @@ disp('---------------------');
 
 
 % plotting the step traces for both feet on the same graph
-figure(1);
-view(3);
-plot3(rD(:,1),rD(:,2),rD(:,3),'r');
-hold on;
-plot3(-lD(:,1),lD(:,2),lD(:,3),'b'); % if the data is the same, only the latter curve will appear
-
-figure(2);
-plot(rD(:,1),rD(:,2),'r',-lD(:,1),lD(:,2),'b');
+% figure(1);
+% view(3);
+% plot3(rD(:,1),rD(:,2),rD(:,3),'r');
+% hold on;
+% plot3(-lD(:,1),lD(:,2),lD(:,3),'b'); % if the data is the same, only the latter curve will appear
+% 
+% figure(2);
+% plot(rD(:,1),rD(:,2),'r',-lD(:,1),lD(:,2),'b');
