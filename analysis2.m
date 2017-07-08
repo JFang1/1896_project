@@ -62,15 +62,6 @@ for li = 2:size(lAccel,1)
     end
 end
 
-disp('---------------------');
-disp('---------------------');
-disp('---------------------');
-disp('Right foot displacement (rD):');
-disp(rD);
-disp('---------------------');
-disp('Left foot displacement (lD):');
-disp(lD);
-disp('---------------------');
 
 % determining individual stride lengths . . . 
 
@@ -85,7 +76,7 @@ rj = 1;
 lj = 1;
 
 % finding the displacements at heel strike - right foot
-for ri = 1:size(rAccel,1) % for every sample
+for ri = 1:size(rStrideD,1) % for every sample
     if rV(ri,1) == 0 & rV(ri,2) == 0 & rV(ri,3) == 0 % if heelstrike
         rStrideD(rj,1) = rD(ri,1); % x dimension of displacement
         % rStrideD(rj,2) = rD(ri,3); % z dimension of displacement
@@ -93,7 +84,7 @@ for ri = 1:size(rAccel,1) % for every sample
     end
 end
 % finding the displacements at heel strike - left foot
-for li = 2:size(lAccel,1) % for every sample
+for li = 2:size(lStrideD,1) % for every sample
     if lV(li,1) == 0 & lV(li,2) == 0 & lV(li,3) == 0 % if heelstrike
         lStrideD(lj,1) = lD(li,1); % x dimension of displacement
         % lStrideD(lj,2) = lD(li,3); % z dimension of displacement
@@ -102,16 +93,39 @@ for li = 2:size(lAccel,1) % for every sample
 end
 
 % Getting rid of repetition in the stride data
-rStrideDExtracted = zeros(size(rStrideD)/5, 1); % The 5 is arbitrary
-lStrideDExtracted = zeros(size(lStrideD)/5, 1);
+%  x(find(diff(x)))
+
+rStrideDExtracted = rStrideD(find(diff(rStrideD)));
+lStrideDExtracted = lStrideD(find(diff(lStrideD)));
+rStrideDExtracted2 = rStrideDExtracted(find(diff(rStrideDExtracted)));
+lStrideDExtracted2 = lStrideDExtracted(find(diff(lStrideDExtracted)));
+% rStrideDExtracted = zeros(floor(size(rStrideD,1)/5), 1);
+% lStrideDExtracted = zeros(floor(size(lStrideD,1)/5), 1);
+% 
+% rj = 1;
+% lj = 1;
+
+% for ri = 5:size(rStrideDExtracted)
+%     if (rStrideD(ri,1)~=rStrideD(ri-1,1) & rStrideD(ri,1)~=rStrideD(ri-2,1) & rStrideD(ri,1)~=rStrideD(ri-3,1) & rStrideD(ri,1)~=rStrideD(ri-4,1))
+%         rStrideDExtracted(rj) = rStrideD(ri,1);
+%         rj = rj + 1;
+%     end
+% end
+%     
+% for li = 5:size(lStrideDExtracted)
+%     if (lStrideD(li,1)~=lStrideD(li-1,1) & lStrideD(li,1)~=lStrideD(li-2,1) & lStrideD(li,1)~=lStrideD(li-3,1) & lStrideD(li,1)~=lStrideD(li-4,1))
+%         lStrideDExtracted(lj) = lStrideD(li,1);
+%         lj = lj + 1;
+%     end
+% end
 
 disp('---------------------');
-disp('Right foot heelstrike displacements with repetition:');
-disp(rStrideDExtracted);
-disp('---------------------');
-disp('Left foot heelstrike displacements with repetition:');
-disp(lStrideDExtracted);
-disp('---------------------');
+% disp('Right foot heelstrike displacements with repetition:');
+% disp(rStrideD);
+% disp('---------------------');
+% disp('Left foot heelstrike displacements with repetition:');
+% disp(lStrideD);
+% disp('---------------------');
 
 disp('---------------------');
 disp('Right foot heelstrike displacements without repetition:');
@@ -184,13 +198,6 @@ disp('---------------------');
 % end
 
 
-% displaying displacement data
-disp('------------------');
-disp('Right Foot Displacement');
-disp(rStrideD);
-disp('------------------');
-disp('Left Foot Displacement');
-disp(lStrideD);
 % % plotting the step traces for both feet on the same graph
 % figure(1);
 % view(3);
@@ -199,7 +206,7 @@ disp(lStrideD);
 % plot3(-lD(:,1),lD(:,2),lD(:,3),'b'); % if the data is the same, only the latter curve will appear
 % 
 % figure(2);
- plot(rD(:,1),rD(:,2),'r',-lD(:,1),lD(:,2),'b');
+% plot(rD(:,1),rD(:,2),'r',-lD(:,1),lD(:,2),'b');
 
 
 % 2nd method of finding where the heel strikes the ground (local minima)
