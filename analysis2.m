@@ -124,11 +124,7 @@ lj0 = 1;
 
 % find where the steps start in rStrideD
 for ri = 1:size(rAccel,1)
-<<<<<<< HEAD
     if rV(ri,1) == 0 && rV(ri,2) == 0 && rV(ri,3) == 0
-=======
-    if rV(ri,1) == 0 & rV(ri,2) == 0 & rV(ri,3) == 0
->>>>>>> 33eba1c4130bb2a831596314d980f96a73811ead
         rj0 = ri; % rj will be index of last set of zeros before step
     else
         break;
@@ -137,11 +133,7 @@ end
 
 % find where the steps start in lStrideD
 for li = 1:size(lAccel,1)
-<<<<<<< HEAD
     if lV(li,1) == 0 && lV(li,2) == 0 && lV(li,3) == 0
-=======
-    if lV(li,1) == 0 & lV(li,2) == 0 & lV(li,3) == 0
->>>>>>> 33eba1c4130bb2a831596314d980f96a73811ead
         lj0 = li; % lj will be index of last set of zeros before step
     else
         break;
@@ -155,11 +147,7 @@ rSize = 0;
 lSize = 0;
 
 for ri = rj0+5:size(rStrideD)
-<<<<<<< HEAD
     if (rStrideD(ri,1)~=rStrideD(ri-1,1) && rStrideD(ri,1)~=rStrideD(ri-2,1) && rStrideD(ri,1)~=rStrideD(ri-3,1) && rStrideD(ri,1)~=rStrideD(ri-4,1) && rStrideD(ri,1)~=rStrideDExtracted(rj-1))
-=======
-    if (rStrideD(ri,1)~=rStrideD(ri-1,1) & rStrideD(ri,1)~=rStrideD(ri-2,1) & rStrideD(ri,1)~=rStrideD(ri-3,1) & rStrideD(ri,1)~=rStrideD(ri-4,1) & rStrideD(ri,1)~=rStrideDExtracted(rj-1))
->>>>>>> 33eba1c4130bb2a831596314d980f96a73811ead
         rStrideDExtracted(rj) = rStrideD(ri,1);
         rj = rj + 1;
     end
@@ -169,11 +157,7 @@ for ri = rj0+5:size(rStrideD)
 end
     
 for li = lj0+5:size(lStrideD)
-<<<<<<< HEAD
     if (lStrideD(li,1)~=lStrideD(li-1,1) && lStrideD(li,1)~=lStrideD(li-2,1) && lStrideD(li,1)~=lStrideD(li-3,1) && lStrideD(li,1)~=lStrideD(li-4,1) && lStrideD(li,1)~=lStrideDExtracted(lj-1))
-=======
-    if (lStrideD(li,1)~=lStrideD(li-1,1) & lStrideD(li,1)~=lStrideD(li-2,1) & lStrideD(li,1)~=lStrideD(li-3,1) & lStrideD(li,1)~=lStrideD(li-4,1) & lStrideD(li,1)~=lStrideDExtracted(lj-1))
->>>>>>> 33eba1c4130bb2a831596314d980f96a73811ead
         lStrideDExtracted(lj) = lStrideD(li,1);
         lj = lj + 1;
     end
@@ -189,11 +173,7 @@ rj = 2;
 lj = 2;
 
 for ri = 2:rSize
-<<<<<<< HEAD
     if ~(abs(rStrideDExtracted(ri)) < abs(rStrideUndup(rj-1))+0.04 && abs(rStrideDExtracted(ri)) > abs(rStrideUndup(rj-1))-0.04)
-=======
-    if ~(abs(rStrideDExtracted(ri)) < abs(rStrideUndup(rj-1))+0.04 & abs(rStrideDExtracted(ri)) > abs(rStrideUndup(rj-1))-0.04)
->>>>>>> 33eba1c4130bb2a831596314d980f96a73811ead
         rStrideUndup(rj) = rStrideDExtracted(ri);
         rj = rj + 1;
         fprintf('O: %d %d\n', rStrideDExtracted(ri), rStrideUndup(rj-1));
@@ -203,11 +183,7 @@ for ri = 2:rSize
 end
     
 for li = 2:lSize
-<<<<<<< HEAD
     if ~(abs(lStrideDExtracted(li)) < abs(lStrideUndup(lj-1))+0.02 && abs(lStrideDExtracted(li)) > abs(lStrideUndup(lj-1))-0.02)
-=======
-    if ~(abs(lStrideDExtracted(li)) < abs(lStrideUndup(lj-1))+0.02 & abs(lStrideDExtracted(li)) > abs(lStrideUndup(lj-1))-0.02)
->>>>>>> 33eba1c4130bb2a831596314d980f96a73811ead
         lStrideUndup(lj) = lStrideDExtracted(li);
         lj = lj + 1;
         fprintf('O: %d %d\n', lStrideDExtracted(li), lStrideUndup(lj-1));
@@ -215,18 +191,15 @@ for li = 2:lSize
         fprintf('X: %d %d\n', lStrideDExtracted(li), lStrideUndup(lj-1));
     end
 end
-<<<<<<< HEAD
 
 %remove 0 at end of array
 rStrideUndup = rStrideUndup(1,1:end-1);
 lStrideUndup = abs(lStrideUndup(1,1:end-1));
-=======
->>>>>>> 33eba1c4130bb2a831596314d980f96a73811ead
+
 
 disp('---------------------');
 disp('---------------------');
 disp('Right foot heelstrike displacements without repetition:');
-<<<<<<< HEAD
 disp(rStrideUndup.');
 disp('---------------------');
 disp('Left foot heelstrike displacements without repetition:');
@@ -261,14 +234,6 @@ disp('Corrected Left foot heelstrike displacements without repetition:');
 disp(correctedStrideL);
 disp('---------------------');
 
-=======
-disp(rStrideUndup);
-disp('---------------------');
-disp('Left foot heelstrike displacements without repetition:');
-disp(lStrideUndup);
-disp('---------------------');
-
->>>>>>> 33eba1c4130bb2a831596314d980f96a73811ead
 % determining individual step lengths . . .
 
 % % converting cumulative distances to individual stride lengths along x,y
@@ -322,8 +287,5 @@ disp('---------------------');
 % plot3(-lD(:,1),lD(:,2),lD(:,3),'b'); % if the data is the same, only the latter curve will appear
 % 
 % figure(2);
-<<<<<<< HEAD
 plot(rD(:,1),rD(:,2),'r',-lD(:,1),lD(:,2),'b');
-=======
-% plot(rD(:,1),rD(:,2),'r',-lD(:,1),lD(:,2),'b');
->>>>>>> 33eba1c4130bb2a831596314d980f96a73811ead
+
