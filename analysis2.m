@@ -9,7 +9,7 @@
 len = input('Enter Length of Test (in meters): ');
 
 % importing data for right foot
-rightFile = 'RT_FOOT_21FT.txt';
+rightFile = 'RT_FOOT_21FT.TXT';
 [rAccel,rDelimeterOut] = importdata(rightFile);
 
 % importing data for left foot
@@ -90,8 +90,8 @@ end
 %  2nd dimension (for z) is not needed if using only x for displacement
 %  I'm keeping the 2nd dimension for now just in case we want to examine
 %  other calculation results.
-rStrideD = zeros(size(rAccel,1), 2);
-lStrideD = zeros(size(lAccel,1), 2);
+rStrideD = zeros(size(smoothAccelR,1), 2);
+lStrideD = zeros(size(smoothAccelL,1), 2);
 % iterators
 rj = 1;
 lj = 1;
@@ -123,7 +123,7 @@ rj0 = 1;
 lj0 = 1;
 
 % find where the steps start in rStrideD
-for ri = 1:size(rAccel,1)
+for ri = 1:size(smoothAccelR,1)
     if rV(ri,1) == 0 && rV(ri,2) == 0 && rV(ri,3) == 0
         rj0 = ri; % rj will be index of last set of zeros before step
     else
@@ -132,7 +132,7 @@ for ri = 1:size(rAccel,1)
 end
 
 % find where the steps start in lStrideD
-for li = 1:size(lAccel,1)
+for li = 1:size(smoothAccelL,1)
     if lV(li,1) == 0 && lV(li,2) == 0 && lV(li,3) == 0
         lj0 = li; % lj will be index of last set of zeros before step
     else
@@ -167,8 +167,8 @@ for li = lj0+5:size(lStrideD)
 end
 
 % removing close duplicates
-rStrideUndup = zeros(floor(rSize/5),1);
-lStrideUndup = zeros(floor(lSize/5),1);
+rStrideUndup = zeros(rSize,1);
+lStrideUndup = zeros(lSize,1);
 rj = 2;
 lj = 2;
 
@@ -192,18 +192,26 @@ for li = 2:lSize
     end
 end
 
-%remove 0 at end of array
-rStrideUndup = rStrideUndup(1,1:end-1);
-lStrideUndup = abs(lStrideUndup(1,1:end-1));
+%remove 0's at end of array
+for x = size(rStrideUndup):-1:2
+        if rStrideUndup(x)==0
+               rStrideUndup=rStrideUndup(1:end-1);
+        end
+end
 
+for x = size(lStrideUndup):-1:2
+        if lStrideUndup(x)==0
+               lStrideUndup=lStrideUndup(1:end-1);
+        end
+end
 
 disp('---------------------');
 disp('---------------------');
 disp('Right foot heelstrike displacements without repetition:');
-disp(rStrideUndup.');
+disp(rStrideUndup);
 disp('---------------------');
 disp('Left foot heelstrike displacements without repetition:');
-disp(lStrideUndup.');
+disp(lStrideUndup);
 disp('---------------------');
 
 %Use overall test length to increase accuracy of step measurements
@@ -211,14 +219,14 @@ measuredTotalR = rD(end,1);
 measuredTotalL = abs(lD(end,1));
 
 %Get individual stride lengths from overall displacement
-strideR = zeros(size(rStrideUndup.'));
-for ri = 2:size(rStrideUndup.')
+strideR = zeros(size(rStrideUndup));
+for ri = 2:size(rStrideUndup)
     strideR(ri) = rStrideUndup(ri)-rStrideUndup(ri-1);
 end
 
-strideL = zeros(size(lStrideUndup.'));
-for li = 2:size(lStrideUndup.')
-    strideL(li) = lStrideUndup(li)-lStrideUndup(li-1);
+strideL = zeros(size(lStrideUndup));
+for li = 2:size(lStrideUndup)
+    strideL(li) = abs(lStrideUndup(li))-abs(lStrideUndup(li-1));
 end
 
 %Use overall test length to increase accuracy of step measurements
