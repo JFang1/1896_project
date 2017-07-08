@@ -244,18 +244,17 @@ disp('---------------------');
 
 % determining individual step lengths . . .
 
-% converting cumulative distances to individual stride lengths along x,y
-for ri = size(rD,1)-rj:1
-    disp(ri);
-    rD(ri,1) = rD(ri,1) - rD(ri-1,1);
-    rD(ri,2) = rD(ri,2) - rD(ri-1,2);
-end
-
-for li = size(lD,1)-lj:1
-    lD(li,1) = lD(li,1) - lD(li-1,1);
-    lD(li,2) = lD(li,2) - lD(li-1,2);
-end
-
+% % converting cumulative distances to individual stride lengths along x,y
+% for ri = size(rD,1)-rj:1
+%     rD(ri,1) = rD(ri,1) - rD(ri-1,1);
+%     rD(ri,2) = rD(ri,2) - rD(ri-1,2);
+% end
+% 
+% for li = size(lD,1)-lj:1
+%     lD(li,1) = lD(li,1) - lD(li-1,1);
+%     lD(li,2) = lD(li,2) - lD(li-1,2);
+% end
+% 
 % % create vectors for stride distance in 1 dimension
 % % NOTE: This assumes walking in a straight line, no turning
 % rStrideD = zeros(size(rAccel,1)-rj+1, 2); % mathematically correct to add 1
