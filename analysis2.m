@@ -5,8 +5,11 @@
 %  - x will be the direction of walking
 %  - The patient MUST start with both feet at the same displacement
 
+%Request overall test length from user
+len = input('Enter Length of Test (in meters): ');
+
 % importing data for right foot
-rightFile = 'RT_FOOT_21FT.TXT';
+rightFile = 'RT_FOOT_21FT.txt';
 [rAccel,rDelimeterOut] = importdata(rightFile);
 
 % importing data for left foot
@@ -24,39 +27,57 @@ lD = zeros(size(lAccel,1),3);
 rT = zeros(size(rAccel,1),1);
 lT = zeros(size(lAccel,1),1);
 
+%Creating a smoothed Acceleration curve using rolling average
+
+movAvg = 6;
+coeff = ones(1,movAvg)/movAvg;
+
+%Smooth Right foot curve
+avg_x = filter(coeff,1,rAccel(:,1));
+avg_y = filter(coeff,1,rAccel(:,2));
+avg_z = filter(coeff,1,rAccel(:,3));
+smoothAccelR = [avg_x,avg_y,avg_z, rAccel(:,4)];
+
+%Smooth Left foot curve
+avg_x = filter(coeff,1,lAccel(:,1));
+avg_y = filter(coeff,1,lAccel(:,2));
+avg_z = filter(coeff,1,lAccel(:,3));
+smoothAccelL = [avg_x,avg_y,avg_z, lAccel(:,4)];
+
+
 % calculating velocity data for the right foot
-rAccelMag = abs(rAccel);
-rHeelStrikes = rAccelMag(:,1) < .1;
-for w = 2:length(rV)
+rAccelMag = abs(smoothAccelR);
+rHeelStrikes = rAccelMag(:,1) < .4;
+for w = 2:length(rV)-1
     %get time displacement for right foot
-    rT(w)= rAccel(w,4) - rAccel(w-1,4);
-    rV(w,:) = rV(w-1,:) + rAccel(w,1:3) * rT(w)*(.001);
-     if(rHeelStrikes(w) == 1)
+    rT(w)= smoothAccelR(w,4) - smoothAccelR(w-1,4);
+    rV(w,:) = rV(w-1,:) + smoothAccelR(w,1:3) * rT(w)*(.001);
+     if(rHeelStrikes(w-1) == 1 && rHeelStrikes(w) == 1 && rHeelStrikes(w+1) == 1)
          rV(w,:) = [0 0 0];     % force zero velocity when foot stationary
      end
 end
 
 % calculating velocity data for the left foot
-lAccelMag = abs(lAccel);
-lHeelStrikes = lAccelMag(:,1) < .1;
-for w = 2:length(lV)
+lAccelMag = abs(smoothAccelL);
+lHeelStrikes = lAccelMag(:,1) < .4;
+for w = 2:length(lV)-1
     %get time displacement for right foot
-    lT(w)= rAccel(w,4) - rAccel(w-1,4);
-    lV(w,:) = lV(w-1,:) + lAccel(w,1:3) * lT(w)*(.001);
-     if(lHeelStrikes(w) == 1)
+    lT(w)= smoothAccelL(w,4) - smoothAccelL(w-1,4);
+    lV(w,:) = lV(w-1,:) + smoothAccelL(w,1:3) * lT(w)*(.001);
+     if(lHeelStrikes(w-1) == 1 && lHeelStrikes(w) == 1 && lHeelStrikes(w+1) == 1)
          lV(w,:) = [0 0 0]; % force zero velocity when foot stationary
      end
 end
 
 % calculating displacement for the right foot
-for ri = 2:size(rAccel,1)
+for ri = 2:size(smoothAccelR,1)
     for ry = 1:3
         rD(ri,ry) = rD(ri-1,ry) + rV(ri,ry) * rT(ri)*(.001);   
     end
 end
 
 % calculating displacement for the left foot
-for li = 2:size(lAccel,1)
+for li = 2:size(smoothAccelL,1)
     for ly = 1:3
         lD(li,ly) = lD(li-1,ly) + lV(li,ly) * lT(w)*(.001);
     end
@@ -77,7 +98,7 @@ lj = 1;
 
 % finding the displacements at heel strike - right foot
 for ri = 1:size(rStrideD,1) % for every sample
-    if rV(ri,1) == 0 & rV(ri,2) == 0 & rV(ri,3) == 0 % if heelstrike
+    if rV(ri,1) == 0 && rV(ri,2) == 0 && rV(ri,3) == 0 % if heelstrike
         rStrideD(rj,1) = rD(ri,1); % x dimension of displacement
         % rStrideD(rj,2) = rD(ri,3); % z dimension of displacement
         rj = rj + 1; % increment row in rStrideD
@@ -85,7 +106,7 @@ for ri = 1:size(rStrideD,1) % for every sample
 end
 % finding the displacements at heel strike - left foot
 for li = 2:size(lStrideD,1) % for every sample
-    if lV(li,1) == 0 & lV(li,2) == 0 & lV(li,3) == 0 % if heelstrike
+    if lV(li,1) == 0 && lV(li,2) == 0 && lV(li,3) == 0 % if heelstrike
         lStrideD(lj,1) = lD(li,1); % x dimension of displacement
         % lStrideD(lj,2) = lD(li,3); % z dimension of displacement
         lj = lj + 1; % increment row in lStrideD
@@ -93,68 +114,127 @@ for li = 2:size(lStrideD,1) % for every sample
 end
 
 % Getting rid of repetition in the stride data
-%  x(find(diff(x)))
 
-rStrideDExtracted = rStrideD(find(diff(rStrideD)));
-lStrideDExtracted = lStrideD(find(diff(lStrideD)));
-rStrideDExtracted2 = rStrideDExtracted(find(diff(rStrideDExtracted)));
-lStrideDExtracted2 = lStrideDExtracted(find(diff(lStrideDExtracted)));
-% rStrideDExtracted = zeros(floor(size(rStrideD,1)/5), 1);
-% lStrideDExtracted = zeros(floor(size(lStrideD,1)/5), 1);
-% 
-% rj = 1;
-% lj = 1;
+rStrideDExtracted = zeros(floor(size(rStrideD,1)/5), 1);
+lStrideDExtracted = zeros(floor(size(lStrideD,1)/5), 1);
 
-% for ri = 5:size(rStrideDExtracted)
-%     if (rStrideD(ri,1)~=rStrideD(ri-1,1) & rStrideD(ri,1)~=rStrideD(ri-2,1) & rStrideD(ri,1)~=rStrideD(ri-3,1) & rStrideD(ri,1)~=rStrideD(ri-4,1))
-%         rStrideDExtracted(rj) = rStrideD(ri,1);
-%         rj = rj + 1;
-%     end
-% end
-%     
-% for li = 5:size(lStrideDExtracted)
-%     if (lStrideD(li,1)~=lStrideD(li-1,1) & lStrideD(li,1)~=lStrideD(li-2,1) & lStrideD(li,1)~=lStrideD(li-3,1) & lStrideD(li,1)~=lStrideD(li-4,1))
-%         lStrideDExtracted(lj) = lStrideD(li,1);
-%         lj = lj + 1;
-%     end
-% end
+% re-initialize the iterators to 1
+rj0 = 1;
+lj0 = 1;
+
+% find where the steps start in rStrideD
+for ri = 1:size(rAccel,1)
+    if rV(ri,1) == 0 && rV(ri,2) == 0 && rV(ri,3) == 0
+        rj0 = ri; % rj will be index of last set of zeros before step
+    else
+        break;
+    end
+end
+
+% find where the steps start in lStrideD
+for li = 1:size(lAccel,1)
+    if lV(li,1) == 0 && lV(li,2) == 0 && lV(li,3) == 0
+        lj0 = li; % lj will be index of last set of zeros before step
+    else
+        break;
+    end
+end
+
+% removing duplicates
+rj = 2;
+lj = 2;
+rSize = 0;
+lSize = 0;
+
+for ri = rj0+5:size(rStrideD)
+    if (rStrideD(ri,1)~=rStrideD(ri-1,1) && rStrideD(ri,1)~=rStrideD(ri-2,1) && rStrideD(ri,1)~=rStrideD(ri-3,1) && rStrideD(ri,1)~=rStrideD(ri-4,1) && rStrideD(ri,1)~=rStrideDExtracted(rj-1))
+        rStrideDExtracted(rj) = rStrideD(ri,1);
+        rj = rj + 1;
+    end
+    if rStrideD(ri,1) ~= 0
+        rSize = rj;
+    end
+end
+    
+for li = lj0+5:size(lStrideD)
+    if (lStrideD(li,1)~=lStrideD(li-1,1) && lStrideD(li,1)~=lStrideD(li-2,1) && lStrideD(li,1)~=lStrideD(li-3,1) && lStrideD(li,1)~=lStrideD(li-4,1) && lStrideD(li,1)~=lStrideDExtracted(lj-1))
+        lStrideDExtracted(lj) = lStrideD(li,1);
+        lj = lj + 1;
+    end
+    if lStrideD(li,1) ~= 0
+        lSize = lj;
+    end
+end
+
+% removing close duplicates
+rStrideUndup = zeros(floor(rSize/5),1);
+lStrideUndup = zeros(floor(lSize/5),1);
+rj = 2;
+lj = 2;
+
+for ri = 2:rSize
+    if ~(abs(rStrideDExtracted(ri)) < abs(rStrideUndup(rj-1))+0.04 && abs(rStrideDExtracted(ri)) > abs(rStrideUndup(rj-1))-0.04)
+        rStrideUndup(rj) = rStrideDExtracted(ri);
+        rj = rj + 1;
+        fprintf('O: %d %d\n', rStrideDExtracted(ri), rStrideUndup(rj-1));
+    else
+        fprintf('X: %d %d\n', rStrideDExtracted(ri), rStrideUndup(rj-1));
+    end
+end
+    
+for li = 2:lSize
+    if ~(abs(lStrideDExtracted(li)) < abs(lStrideUndup(lj-1))+0.02 && abs(lStrideDExtracted(li)) > abs(lStrideUndup(lj-1))-0.02)
+        lStrideUndup(lj) = lStrideDExtracted(li);
+        lj = lj + 1;
+        fprintf('O: %d %d\n', lStrideDExtracted(li), lStrideUndup(lj-1));
+    else
+        fprintf('X: %d %d\n', lStrideDExtracted(li), lStrideUndup(lj-1));
+    end
+end
+
+%remove 0 at end of array
+rStrideUndup = rStrideUndup(1,1:end-1);
+lStrideUndup = abs(lStrideUndup(1,1:end-1));
 
 disp('---------------------');
-% disp('Right foot heelstrike displacements with repetition:');
-% disp(rStrideD);
-% disp('---------------------');
-% disp('Left foot heelstrike displacements with repetition:');
-% disp(lStrideD);
-% disp('---------------------');
-
 disp('---------------------');
 disp('Right foot heelstrike displacements without repetition:');
-disp(rStrideDExtracted);
+disp(rStrideUndup.');
 disp('---------------------');
 disp('Left foot heelstrike displacements without repetition:');
-disp(lStrideDExtracted);
+disp(lStrideUndup.');
 disp('---------------------');
 
-% % determining individual step lengths . . .
-% 
-% % re-initialize the iterators to 1
-% rj = 1;
-% lj = 1;
-% 
-% % find where the steps start in rStrideD
-% for ri = 1:size(rAccel,1)
-%     if rV(ri,1) == 0 & rV(ri,2) == 0 & rV(ri,3) == 0
-%         rj = ri; % rj will be index of last set of zeros before step
-%     end
-% end
-% 
-% % find where the steps start in lStrideD
-% for li = 1:size(lAccel,1)
-%     if lV(li,1) == 0 & lV(li,2) == 0 & lV(li,3) == 0
-%         lj = li; % lj will be index of last set of zeros before step
-%     end
-% end
-% 
+%Use overall test length to increase accuracy of step measurements
+measuredTotalR = rD(end,1);
+measuredTotalL = abs(lD(end,1));
+
+%Get individual stride lengths from overall displacement
+strideR = zeros(size(rStrideUndup.'));
+for ri = 2:size(rStrideUndup.')
+    strideR(ri) = rStrideUndup(ri)-rStrideUndup(ri-1);
+end
+
+strideL = zeros(size(lStrideUndup.'));
+for li = 2:size(lStrideUndup.')
+    strideL(li) = lStrideUndup(li)-lStrideUndup(li-1);
+end
+
+%Use overall test length to increase accuracy of step measurements
+correctedStrideR = (strideR/measuredTotalR)*len;
+correctedStrideL = (strideL/measuredTotalL)*len;
+
+%Display stride data corrected using overall walk length
+disp('---------------------');
+disp('Corrected Right foot heelstrike displacements without repetition:');
+disp(correctedStrideR);
+disp('---------------------');
+disp('Corrected Left foot heelstrike displacements without repetition:');
+disp(correctedStrideL);
+disp('---------------------');
+
+% determining individual step lengths . . .
+
 % % converting cumulative distances to individual stride lengths along x,y
 % for ri = size(rD,1)-rj:1
 %     rD(ri,1) = rD(ri,1) - rD(ri-1,1);
@@ -198,7 +278,7 @@ disp('---------------------');
 % end
 
 
-% % plotting the step traces for both feet on the same graph
+% plotting the step traces for both feet on the same graph
 % figure(1);
 % view(3);
 % plot3(rD(:,1),rD(:,2),rD(:,3),'r');
@@ -206,18 +286,4 @@ disp('---------------------');
 % plot3(-lD(:,1),lD(:,2),lD(:,3),'b'); % if the data is the same, only the latter curve will appear
 % 
 % figure(2);
-% plot(rD(:,1),rD(:,2),'r',-lD(:,1),lD(:,2),'b');
-
-
-% 2nd method of finding where the heel strikes the ground (local minima)
-
-% large number for initializing the size of the minima arrays
-%maxSize = 2000;
-
-% local minima of the Z-axis/vertical dimension, indicating heel strikes
-%left_heel_strikes = zeros(max_size,3);
-%right_heel_strikes = zeros(max_size,3);
-
-% actually finding the minima
-%left_heel_strikes = findpeaks(-leftData(:,3));
-%right_heel_strikes = findpeaks(-rightData(:,3));
+plot(rD(:,1),rD(:,2),'r',-lD(:,1),lD(:,2),'b');
