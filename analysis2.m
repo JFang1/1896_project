@@ -145,17 +145,14 @@ for li = lj0+5:size(lStrideD)
     end
 end
 
-disp(rStrideDExtracted(rSize));
-disp(lStrideDExtracted(lSize));
-
 % removing close duplicates
-rStrideUndup = zeros(floor(rSize/4),1);
-lStrideUndup = zeros(floor(lSize/4),1);
+rStrideUndup = zeros(floor(rSize/3),1);
+lStrideUndup = zeros(floor(lSize/3),1);
 rj = 2;
 lj = 2;
 
 for ri = 2:rSize
-    if ~(abs(rStrideDExtracted(ri)) < abs(rStrideUndup(rj-1))+0.02 & abs(rStrideDExtracted(ri)) > abs(rStrideUndup(rj-1))-0.02)
+    if ~(abs(rStrideDExtracted(ri)) < abs(rStrideUndup(rj-1))+0.04 & abs(rStrideDExtracted(ri)) > abs(rStrideUndup(rj-1))-0.04)
         rStrideUndup(rj) = rStrideDExtracted(ri);
         rj = rj + 1;
         fprintf('O: %d %d\n', rStrideDExtracted(ri), rStrideUndup(rj-1));
@@ -168,6 +165,9 @@ for li = 2:lSize
     if ~(abs(rStrideDExtracted(li)) < abs(lStrideUndup(lj-1))+0.02 & abs(lStrideDExtracted(li)) > abs(lStrideUndup(lj-1))-0.02)
         lStrideUndup(lj) = lStrideDExtracted(li);
         lj = lj + 1;
+        fprintf('O: %d %d\n', lStrideDExtracted(li), lStrideUndup(lj-1));
+    else
+        fprintf('X: %d %d\n', lStrideDExtracted(li), lStrideUndup(lj-1));
     end
 end
 
