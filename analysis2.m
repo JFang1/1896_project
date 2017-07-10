@@ -105,7 +105,7 @@ for ri = 1:size(rStrideD,1) % for every sample
     end
 end
 % finding the displacements at heel strike - left foot
-for li = 2:size(lStrideD,1) % for every sample
+for li = 1:size(lStrideD,1) % for every sample
     if lV(li,1) == 0 && lV(li,2) == 0 && lV(li,3) == 0 % if heelstrike
         lStrideD(lj,1) = lD(li,1); % x dimension of displacement
         % lStrideD(lj,2) = lD(li,3); % z dimension of displacement
@@ -146,8 +146,8 @@ lj = 2;
 rSize = 0;
 lSize = 0;
 
-for ri = rj0+5:size(rStrideD)
-    if (rStrideD(ri,1)~=rStrideD(ri-1,1) && rStrideD(ri,1)~=rStrideD(ri-2,1) && rStrideD(ri,1)~=rStrideD(ri-3,1) && rStrideD(ri,1)~=rStrideD(ri-4,1) && rStrideD(ri,1)~=rStrideDExtracted(rj-1))
+for ri = rj0:size(rStrideD)-5
+    if (rStrideD(ri,1)~=rStrideD(ri+1,1) && rStrideD(ri,1)~=rStrideD(ri+2,1) && rStrideD(ri,1)~=rStrideD(ri+3,1) && rStrideD(ri,1)~=rStrideD(ri+4,1) && rStrideD(ri,1)~=rStrideDExtracted(rj-1))
         rStrideDExtracted(rj) = rStrideD(ri,1);
         rj = rj + 1;
     end
@@ -156,8 +156,8 @@ for ri = rj0+5:size(rStrideD)
     end
 end
     
-for li = lj0+5:size(lStrideD)
-    if (lStrideD(li,1)~=lStrideD(li-1,1) && lStrideD(li,1)~=lStrideD(li-2,1) && lStrideD(li,1)~=lStrideD(li-3,1) && lStrideD(li,1)~=lStrideD(li-4,1) && lStrideD(li,1)~=lStrideDExtracted(lj-1))
+for li = lj0:size(lStrideD)-5
+    if (lStrideD(li,1)~=lStrideD(li+1,1) && lStrideD(li,1)~=lStrideD(li+2,1) && lStrideD(li,1)~=lStrideD(li+3,1) && lStrideD(li,1)~=lStrideD(li+4,1) && lStrideD(li,1)~=lStrideDExtracted(lj-1))
         lStrideDExtracted(lj) = lStrideD(li,1);
         lj = lj + 1;
     end
@@ -172,7 +172,7 @@ lStrideUndup = zeros(lSize,1);
 rj = 2;
 lj = 2;
 
-for ri = 2:rSize
+for ri = 1:rSize
     if ~(abs(rStrideDExtracted(ri)) < abs(rStrideUndup(rj-1))+0.04 && abs(rStrideDExtracted(ri)) > abs(rStrideUndup(rj-1))-0.04)
         rStrideUndup(rj) = rStrideDExtracted(ri);
         rj = rj + 1;
@@ -182,7 +182,7 @@ for ri = 2:rSize
     end
 end
     
-for li = 2:lSize
+for li = 1:lSize
     if ~(abs(lStrideDExtracted(li)) < abs(lStrideUndup(lj-1))+0.02 && abs(lStrideDExtracted(li)) > abs(lStrideUndup(lj-1))-0.02)
         lStrideUndup(lj) = lStrideDExtracted(li);
         lj = lj + 1;
@@ -218,6 +218,11 @@ disp('---------------------');
 measuredTotalR = rD(end,1);
 measuredTotalL = abs(lD(end,1));
 
+disp('mtr');
+disp(measuredTotalR);
+disp('mtl');
+disp(measuredTotalL);
+
 %Get individual stride lengths from overall displacement
 strideR = zeros(size(rStrideUndup));
 for ri = 2:size(rStrideUndup)
@@ -242,49 +247,39 @@ disp('Corrected Left foot heelstrike displacements without repetition:');
 disp(correctedStrideL);
 disp('---------------------');
 
-% determining individual step lengths . . .
+% determining which foot stepped first
+rightFirst = -1;
+if correctedStrideL(1) < correctedStrideR(1) % left foot stepped first
+    rightFirst = 0;
+else % right foot stepped first
+    rightFirst = 1;
+end
 
-% % converting cumulative distances to individual stride lengths along x,y
-% for ri = size(rD,1)-rj:1
-%     rD(ri,1) = rD(ri,1) - rD(ri-1,1);
-%     rD(ri,2) = rD(ri,2) - rD(ri-1,2);
-% end
-% 
-% for li = size(lD,1)-lj:1
-%     lD(li,1) = lD(li,1) - lD(li-1,1);
-%     lD(li,2) = lD(li,2) - lD(li-1,2);
-% end
-% 
-% % create vectors for stride distance in 1 dimension
-% % NOTE: This assumes walking in a straight line, no turning
-% rStrideD = zeros(size(rAccel,1)-rj+1, 2); % mathematically correct to add 1
-% lStrideD = zeros(size(lAccel,1)-lj+1);
-% 
-% for ri = 1:size(rStrideD)
-%     rStrideD(ri) = sqrt(rD(rj,1)^2 + rD(rj,2)^2);
-% end
-% 
-% for li = 1:size(lStrideD)
-%     lStrideD(li) = sqrt(lD(lj,1)^2 + lD(lj,2)^2);
-% end
-% 
-% % determininig which foot stepped first
-% temp = 0;
-% rightFirst = -1;
-% if lStrideD(1) < rStrideD(1) % left foot stepped first
-%     rightFirst = 0;
-% else % right foot stepped first
-%     rightFirst = 1;
-% end
-% 
-% if rightFirst == 1 % if stepped with right foot first
-%     for li = 2:2:size(lStrideD)
-%         lStrideD(li) = lStrideD(li) - rStrideD(li);
-%         rStrideD(li+1) = rStrideD(li+1) - lStrideD(li);
-%     end
-% else
-%     
-% end
+% getting the step lengths
+stepLengthR = zeros(size(correctedStrideR));
+stepLengthL = zeros(size(correctedStrideL));
+if rightFirst == 1 % if stepped with right foot first
+    for i = 1:size(correctedStrideR)-1
+        stepLengthR(i) = correctedStrideR(i+1) - correctedStrideL(i);
+        stepLengthL(i) = correctedStrideL(i) - correctedStrideR(i);
+    end
+    if size(correctedStrideL) == size(correctedStrideR)
+        i = i+1;
+        stepLengthL(i) = correctedStrideL(i) - correctedStrideR(i);
+    end
+else % left foot stepped first
+     for i = 1:size(correctedStrideL)-1
+        stepLengthL(i) = correctedStrideL(i+1) - correctedStrideR(i);
+        stepLengthR(i) = correctedStrideR(i) - correctedStrideL(i);
+    end
+    if size(correctedStrideR) == size(correctedStrideL)
+        i = i+1;
+        stepLengthR(i) = correctedStrideR(i) - correctedStrideL(i);
+    end
+end
+
+disp(stepLengthL);
+disp(stepLengthR);
 
 
 % plotting the step traces for both feet on the same graph
