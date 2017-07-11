@@ -47,7 +47,7 @@ smoothAccelL = [avg_x,avg_y,avg_z, lAccel(:,4)];
 
 % calculating velocity data for the right foot
 rAccelMag = abs(smoothAccelR);
-rHeelStrikes = rAccelMag(:,1) < .4;
+rHeelStrikes = rAccelMag(:,1) < .4; % TODO: might have to change this
 for w = 2:length(rV)-1
     %get time displacement for right foot
     rT(w)= smoothAccelR(w,4) - smoothAccelR(w-1,4);
