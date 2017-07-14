@@ -10,12 +10,12 @@ len = input('Enter Length of Test (in meters): ');
 
 % importing data for right foot
 % rightFile = 'RIGHT_M4_QUICK_CAL.TXT';
-rightFile = 'RIGHT_M1.txt';
+rightFile = 'RIGHT_OUTJ1.txt';
 [rAccel,rDelimeterOut] = importdata(rightFile);
 
 % importing data for left foot
 %leftFile = 'LEFT_M4_QUICK_CAL.txt';
-leftFile = 'LEFT_M1.txt';
+leftFile = 'LEFT_OUTJ1.txt';
 [lAccel,lDelimeterOut] = importdata(leftFile);
 
 % initializing arrays that will hold velocity and displacement data
@@ -280,29 +280,33 @@ else % right foot stepped first
     rightFirst = 1;
 end
 
+max = 0;
+% determining the largest size of array that we can use
+if size(correctedStrideR) > size(correctedStrideL)
+    max = size(correctedStrideL);
+else
+    max = size(correctedStrideR);
+end
+
 % getting the step lengths
 stepLengthR = zeros(size(correctedStrideR));
 stepLengthL = zeros(size(correctedStrideL));
 if rightFirst == 1 % if stepped with right foot first
     stepLengthR(1) = correctedStrideR(1);
-    for i = 1:size(correctedStrideR)-1
+    for i = 1:max-1
         stepLengthL(i) = correctedStrideL(i) - stepLengthR(i);
         stepLengthR(i+1) = correctedStrideR(i+1) - stepLengthL(i);
     end
-    if size(correctedStrideL) == size(correctedStrideR)
-        i = i+1;
-        stepLengthL(i) = correctedStrideL(i);
-    end
+    i = i+1;
+    stepLengthL(i) = correctedStrideL(i);
 else % left foot stepped first
     stepLengthL(1) = correctedStrideL(1);
-    for i = 1:size(correctedStrideL)-1
+    for i = 1:max-1
         stepLengthR(i) = correctedStrideR(i) - stepLengthL(i);
         stepLengthL(i+1) = correctedStrideL(i+1) - stepLengthR(i);
     end
-    if size(correctedStrideR) == size(correctedStrideL)
-        i = i+1;
-        stepLengthR(i) = correctedStrideR(i);
-    end
+    i = i+1;
+    stepLengthR(i) = correctedStrideR(i);
 end
 
 disp(stepLengthL);
