@@ -248,20 +248,20 @@ disp(measuredTotalR);
 disp('mtl');
 disp(measuredTotalL);
 
-%Get individual stride lengths from overall displacement
-strideR = zeros(size(rStrideUndup));
-for ri = 2:size(rStrideUndup)
-    strideR(ri) = rStrideUndup(ri)-rStrideUndup(ri-1);
-end
-
-strideL = zeros(size(lStrideUndup));
-for li = 2:size(lStrideUndup)
-    strideL(li) = abs(lStrideUndup(li))-abs(lStrideUndup(li-1));
-end
+% %Get individual stride lengths from overall displacement
+% strideR = zeros(size(rStrideUndup));
+% for ri = 2:size(rStrideUndup)
+%     strideR(ri) = rStrideUndup(ri)-rStrideUndup(ri-1);
+% end
+% 
+% strideL = zeros(size(lStrideUndup));
+% for li = 2:size(lStrideUndup)
+%     strideL(li) = abs(lStrideUndup(li))-abs(lStrideUndup(li-1));
+% end
 
 %Use overall test length to increase accuracy of step measurements
-correctedStrideR = (strideR/measuredTotalR)*len;
-correctedStrideL = (strideL/measuredTotalL)*len;
+correctedStrideR = (rStrideUndup/measuredTotalR)*len;
+correctedStrideL = (lStrideUndup/measuredTotalL)*len;
 
 %Display stride data corrected using overall walk length
 disp('---------------------');
@@ -296,21 +296,15 @@ disp(max);
 
 % getting the step lengths
 if rightFirst == 1 % if stepped with right foot first
-    stepLengthR(2) = correctedStrideR(2);
-    for i = 2:max-1
-        stepLengthL(i) = correctedStrideL(i) - stepLengthR(i);
-        stepLengthR(i+1) = correctedStrideR(i+1) - stepLengthL(i);
+    for i = 2:max
+        stepLengthR(i) = correctedStrideR(i) - correctedStrideL(i-1);
+        stepLengthL(i) = correctedStrideL(i) - correctedStrideR(i);
     end
-    i = i+1;
-    stepLengthL(i) = correctedStrideL(i);
 else % left foot stepped first
-    stepLengthL(2) = correctedStrideL(2);
-    for i = 1:max-1
-        stepLengthR(i) = correctedStrideR(i) - stepLengthL(i);
-        stepLengthL(i+1) = correctedStrideL(i+1) - stepLengthR(i);
+    for i = 2:max
+        stepLengthL(i) = correctedStrideL(i) - correctedStrideR(i-1);
+        stepLengthR(i) = correctedStrideR(i) - correctedStrideL(i);
     end
-    i = i+1;
-    stepLengthR(i) = correctedStrideR(i);
 end
 
 disp(stepLengthL);
