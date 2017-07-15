@@ -10,12 +10,12 @@ len = input('Enter Length of Test (in meters): ');
 
 % importing data for right foot
 % rightFile = 'RIGHT_M4_QUICK_CAL.TXT';
-rightFile = 'RIGHT_OUTM3.txt';
+rightFile = 'RIGHT_OUTN3.txt';
 [rAccel,rDelimeterOut] = importdata(rightFile);
 
 % importing data for left foot
 %leftFile = 'LEFT_M4_QUICK_CAL.txt';
-leftFile = 'LEFT_OUTM3.txt';
+leftFile = 'LEFT_OUTN3.txt';
 [lAccel,lDelimeterOut] = importdata(leftFile);
 
 % initializing arrays that will hold velocity and displacement data
@@ -49,16 +49,19 @@ smoothAccelL = [avg_x,avg_y,avg_z, lAccel(:,4)];
 
 % calculating velocity data for the right foot
 rAccelMag = abs(smoothAccelR);
+
 rHeelStrikes = rAccelMag(:,1) < .4; % TODO: might have to change this
+rHeelLift = rAccelMag(:,1) < .4;
 %Previous state (0 = stationary, 1 = moving)
 prevState = 0;
+smoothAccelR(:,1) = smoothAccelR(:,1)*-1;
 for w = 2:length(rV)-1
     %get time displacement for right foot
     rT(w)= smoothAccelR(w,4) - smoothAccelR(w-1,4);
-    if(rHeelStrikes(w-1) == 0 && rHeelStrikes(w)==0 && rHeelStrikes(w+1)==0 || prevState==1)
+    if(rHeelLift(w-1) == 0 && rHeelLift(w)==0 && rHeelLift(w+1)==0 || prevState==1)
         rV(w,:) = rV(w-1,:) + smoothAccelR(w,1:3) * rT(w)*(.001);
         %Zero Out any backwards velocities
-        if( rV(w,1) > 0)
+        if( rV(w,1) < 0)
             disp(w);
             disp(rV(w,:));
             rV(w,:)=[0,0,0];
@@ -74,16 +77,15 @@ end
 % calculating velocity data for the left foot
 lAccelMag = abs(smoothAccelL);
 lHeelStrikes = lAccelMag(:,1) < .4;
+lHeelLift = lAccelMag(:,1) < .4;
 prevState=0;
 for w = 2:length(lV)-1
     %get time displacement for right foot
     lT(w)= smoothAccelL(w,4) - smoothAccelL(w-1,4);
-    if(lHeelStrikes(w-1) == 0 && lHeelStrikes(w) == 0 && lHeelStrikes(w+1) == 0 || prevState==1)
+    if(lHeelLift(w-1) == 0 && lHeelLift(w) == 0 && lHeelLift(w+1) == 0 || prevState==1)
         lV(w,:) = lV(w-1,:) + smoothAccelL(w,1:3) * lT(w)*(.001);
         %Zero Out any backwards velocities
          if( lV(w,1) < 0)
-             disp(w);
-             disp(lV(w,:));
              lV(w,:)=[0,0,0];
          end
         prevState=1;
@@ -248,20 +250,20 @@ disp(measuredTotalR);
 disp('mtl');
 disp(measuredTotalL);
 
-% %Get individual stride lengths from overall displacement
-% strideR = zeros(size(rStrideUndup));
-% for ri = 2:size(rStrideUndup)
-%     strideR(ri) = rStrideUndup(ri)-rStrideUndup(ri-1);
-% end
-% 
-% strideL = zeros(size(lStrideUndup));
-% for li = 2:size(lStrideUndup)
-%     strideL(li) = abs(lStrideUndup(li))-abs(lStrideUndup(li-1));
-% end
+%Get individual stride lengths from overall displacement
+strideR = zeros(size(rStrideUndup));
+for ri = 2:size(rStrideUndup)
+    strideR(ri) = rStrideUndup(ri)-rStrideUndup(ri-1);
+end
+
+strideL = zeros(size(lStrideUndup));
+for li = 2:size(lStrideUndup)
+    strideL(li) = abs(lStrideUndup(li))-abs(lStrideUndup(li-1));
+end
 
 %Use overall test length to increase accuracy of step measurements
-correctedStrideR = (rStrideUndup/measuredTotalR)*len;
-correctedStrideL = (lStrideUndup/measuredTotalL)*len;
+correctedStrideR = (strideR/measuredTotalR)*len;
+correctedStrideL = (strideL/measuredTotalL)*len;
 
 %Display stride data corrected using overall walk length
 disp('---------------------');
@@ -272,9 +274,24 @@ disp('Corrected Left foot heelstrike displacements without repetition:');
 disp(correctedStrideL);
 disp('---------------------');
 
+
+correctedStrideRCum = zeros(size(correctedStrideR));
+correctedStrideLCum = zeros(size(correctedStrideL));
+
+for i = 2:size(correctedStrideR)
+    correctedStrideRCum(i) = correctedStrideRCum(i-1)+correctedStrideR(i);
+end
+
+for i = 2:size(correctedStrideL)
+    correctedStrideLCum(i) = correctedStrideLCum(i-1)+correctedStrideL(i);
+end
+
+disp(correctedStrideRCum);
+disp(correctedStrideLCum);
+
 % determining which foot stepped first
 rightFirst = -1;
-if correctedStrideL(2) < correctedStrideR(2) % left foot stepped first
+if correctedStrideLCum(2) > correctedStrideRCum(2) % left foot stepped first
     rightFirst = 0;
 else % right foot stepped first
     rightFirst = 1;
@@ -282,14 +299,14 @@ end
 
 max = 0;
 % determining the largest size of array that we can use
-if size(correctedStrideR,1) > size(correctedStrideL,1)
-    max = size(correctedStrideL,1);
-    stepLengthR = zeros(size(correctedStrideL));
-    stepLengthL = zeros(size(correctedStrideL));
+if size(correctedStrideRCum,1) > size(correctedStrideLCum,1)
+    max = size(correctedStrideLCum,1);
+    stepLengthR = zeros(size(correctedStrideLCum));
+    stepLengthL = zeros(size(correctedStrideLCum));
 else
-    max = size(correctedStrideR,1);
-    stepLengthR = zeros(size(correctedStrideR));
-    stepLengthL = zeros(size(correctedStrideR));
+    max = size(correctedStrideRCum,1);
+    stepLengthR = zeros(size(correctedStrideRCum));
+    stepLengthL = zeros(size(correctedStrideRCum));
 end
 disp('max');
 disp(max);
@@ -297,13 +314,13 @@ disp(max);
 % getting the step lengths
 if rightFirst == 1 % if stepped with right foot first
     for i = 2:max
-        stepLengthR(i) = correctedStrideR(i) - correctedStrideL(i-1);
-        stepLengthL(i) = correctedStrideL(i) - correctedStrideR(i);
+        stepLengthR(i) = correctedStrideRCum(i) - correctedStrideLCum(i-1);
+        stepLengthL(i) = correctedStrideLCum(i) - correctedStrideRCum(i);
     end
 else % left foot stepped first
     for i = 2:max
-        stepLengthL(i) = correctedStrideL(i) - correctedStrideR(i-1);
-        stepLengthR(i) = correctedStrideR(i) - correctedStrideL(i);
+        stepLengthL(i) = correctedStrideLCum(i) - correctedStrideRCum(i-1);
+        stepLengthR(i) = correctedStrideRCum(i) - correctedStrideLCum(i);
     end
 end
 
@@ -319,4 +336,4 @@ disp(stepLengthR);
 % plot3(-lD(:,1),lD(:,2),lD(:,3),'b'); % if the data is the same, only the latter curve will appear
 % 
 % figure(2);
-plot(rD(:,1),rD(:,2),'r',-lD(:,1),lD(:,2),'b');
+plot(rD(:,1),rD(:,2),'r',lD(:,1),lD(:,2),'b');
