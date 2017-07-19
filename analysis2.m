@@ -10,12 +10,12 @@ len = input('Enter Length of Test (in meters): ');
 
 % importing data for right foot
 % rightFile = 'RIGHT_M4_QUICK_CAL.TXT';
-rightFile = 'RIGHT_OUTN3.txt';
+rightFile = 'RIGHT_OUTN2.txt';
 [rAccel,rDelimeterOut] = importdata(rightFile);
 
 % importing data for left foot
 %leftFile = 'LEFT_M4_QUICK_CAL.txt';
-leftFile = 'LEFT_OUTN3.txt';
+leftFile = 'LEFT_OUTN2.txt';
 [lAccel,lDelimeterOut] = importdata(leftFile);
 
 % initializing arrays that will hold velocity and displacement data
@@ -29,19 +29,33 @@ lD = zeros(size(lAccel,1),3);
 rT = zeros(size(rAccel,1),1);
 lT = zeros(size(lAccel,1),1);
 
-%Creating a smoothed Acceleration curve using rolling average
+cutoff=7; %set the lowpass cutoff frequency
 
-movAvg = 6;
+%Call Low pass filter function for right Accel
+x=rAccel(:,1);
+t=rAccel(:,4);
+[X, f, y, y2, Fs] = fftf(t, x, cutoff);
+
+pause;
+
+%Creating a smoothed Acceleration curve using rolling average
+movAvg = 10;
 coeff = ones(1,movAvg)/movAvg;
 
 %Smooth Right foot curve
-avg_x = filter(coeff,1,rAccel(:,1));
+avg_x = X.';
 avg_y = filter(coeff,1,rAccel(:,2));
 avg_z = filter(coeff,1,rAccel(:,3));
 smoothAccelR = [avg_x,avg_y,avg_z, rAccel(:,4)];
 
+
+%Lowpass filter for left X accel
+lx=lAccel(:,1);
+t=lAccel(:,4);
+[lX, f, y, y2, Fs] = fftf(t, lx, cutoff);
+
 %Smooth Left foot curve
-avg_x = filter(coeff,1,lAccel(:,1));
+avg_x = lX.';
 avg_y = filter(coeff,1,lAccel(:,2));
 avg_z = filter(coeff,1,lAccel(:,3));
 smoothAccelL = [avg_x,avg_y,avg_z, lAccel(:,4)];
@@ -335,5 +349,9 @@ disp(stepLengthR);
 % hold on;
 % plot3(-lD(:,1),lD(:,2),lD(:,3),'b'); % if the data is the same, only the latter curve will appear
 % 
-% figure(2);
+figure(4);
 plot(rD(:,1),rD(:,2),'r',lD(:,1),lD(:,2),'b');
+
+
+disp(Fs);
+
