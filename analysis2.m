@@ -5,7 +5,7 @@
 %  - x will be the direction of walking
 %  - The patient MUST start with both feet at the same displacement
 
-%Request overall test length from user
+% request overall test length from user
 len = input('Enter Length of Test (in meters): ');
 
 % importing data for right foot
@@ -14,7 +14,7 @@ rightFile = 'RIGHT_OUTN2.txt';
 [rAccel,rDelimeterOut] = importdata(rightFile);
 
 % importing data for left foot
-%leftFile = 'LEFT_M4_QUICK_CAL.txt';
+% leftFile = 'LEFT_M4_QUICK_CAL.txt';
 leftFile = 'LEFT_OUTN2.txt';
 [lAccel,lDelimeterOut] = importdata(leftFile);
 
@@ -29,42 +29,54 @@ lD = zeros(size(lAccel,1),3);
 rT = zeros(size(rAccel,1),1);
 lT = zeros(size(lAccel,1),1);
 
-cutoff=7; %set the lowpass cutoff frequency
+cutoff=7; % set the lowpass cutoff frequency
 
-%Call Low pass filter function for right Accel
+% call low pass filter function for rAccel
 x=rAccel(:,1);
 t=rAccel(:,4);
 [X, f, y, y2, Fs] = fftf(t, x, cutoff);
 
 pause;
 
-%Creating a smoothed Acceleration curve using rolling average
+% create a smoothed acceleration curve using rolling average
 movAvg = 10;
 coeff = ones(1,movAvg)/movAvg;
 
-%Smooth Right foot curve
+% smooth Right foot curve
 avg_x = X.';
 avg_y = filter(coeff,1,rAccel(:,2));
 avg_z = filter(coeff,1,rAccel(:,3));
 smoothAccelR = [avg_x,avg_y,avg_z, rAccel(:,4)];
 
-
-%Lowpass filter for left X accel
+% lowpass filter for left X accel
 lx=lAccel(:,1);
 t=lAccel(:,4);
 [lX, f, y, y2, Fs] = fftf(t, lx, cutoff);
 
-%Smooth Left foot curve
+% smooth Left foot curve
 avg_x = lX.';
 avg_y = filter(coeff,1,lAccel(:,2));
 avg_z = filter(coeff,1,lAccel(:,3));
 smoothAccelL = [avg_x,avg_y,avg_z, lAccel(:,4)];
 
+% find the heelstrikes
+smoothAccelR2 = smoothAccelR(:,1);
+smoothAccelL2 = smoothAccelL(:,1);
+[rpks, rlocs] = findpeaks(-smoothAccelR2);
+[lpks, llocs] = findpeaks(-smoothAccelL2);
+rHeelStrikes = zeros(size(smoothAccelR);
+lHeelStrikes = zeros(size(smoothAccelL);
+for i = 1:size(rlocs)
+    rHeelStrikes(rlocs(i)) = 1;
+end
+for i = 1:size(llocs)
+    lHeelStrikes(llocs(i)) = 1;
+end
 
 % calculating velocity data for the right foot
 rAccelMag = abs(smoothAccelR);
 
-rHeelStrikes = rAccelMag(:,1) < .4; % TODO: might have to change this
+% rHeelStrikes = rAccelMag(:,1) < .4; % TODO: might have to change this
 rHeelLift = rAccelMag(:,1) < .4;
 %Previous state (0 = stationary, 1 = moving)
 prevState = 0;
