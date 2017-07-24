@@ -92,28 +92,28 @@ figure(3);
 plot(lAccel(:,4),avg_x);
 title('smoothed left signal');
 
-% find the heelstrikes
-smoothAccelR2 = smoothAccelR(:,1);
-smoothAccelL2 = smoothAccelL(:,1);
-[rpks, rlocs] = findpeaks(-smoothAccelR2);
-[lpks, llocs] = findpeaks(-smoothAccelL2);
-rHeelStrikes = zeros(size(smoothAccelR,1));
-lHeelStrikes = zeros(size(smoothAccelL,1));
-for i = 1:size(rlocs)
-    if (smoothAccelR2(i) < -0.4)
-        rHeelStrikes(rlocs(i)) = 1;
-    end
-end
-for i = 1:size(llocs)
-    if (smoothAccelL2(i) < -0.4)
-        lHeelStrikes(llocs(i)) = 1;
-    end
-end
+% % find the heelstrikes
+% smoothAccelR2 = smoothAccelR(:,1);
+% smoothAccelL2 = smoothAccelL(:,1);
+% [rpks, rlocs] = findpeaks(-smoothAccelR2);
+% [lpks, llocs] = findpeaks(-smoothAccelL2);
+% rHeelStrikes = zeros(size(smoothAccelR,1));
+% lHeelStrikes = zeros(size(smoothAccelL,1));
+% for i = 1:size(rlocs)
+%     if (smoothAccelR2(i) < -0.4)
+%         rHeelStrikes(rlocs(i)) = 1;
+%     end
+% end
+% for i = 1:size(llocs)
+%     if (smoothAccelL2(i) < -0.4)
+%         lHeelStrikes(llocs(i)) = 1;
+%     end
+% end
 
 % calculating velocity data for the right foot
 rAccelMag = abs(smoothAccelR);
-% rHeelStrikes = rAccelMag(:,1) < .4; % TODO: might have to change this
-rHeelLift = rAccelMag(:,1) < .4;
+rHeelStrikes = rAccelMag(:,1) < .6; % TODO: might have to change this
+rHeelLift = rAccelMag(:,1) < .6;
 % previous state (0 = stationary, 1 = moving)
 prevState = 0;
 smoothAccelR(:,1) = smoothAccelR(:,1)*-1;
@@ -141,8 +141,8 @@ AVG_rV = mean(rV);
 
 % calculating velocity data for the left foot
 lAccelMag = abs(smoothAccelL);
-% lHeelStrikes = lAccelMag(:,1) < .4;
-lHeelLift = lAccelMag(:,1) < .4;
+lHeelStrikes = lAccelMag(:,1) < .6;
+lHeelLift = lAccelMag(:,1) < .6;
 prevState=0;
 for w = 2:length(lV)-1
     % get time displacement for right foot
