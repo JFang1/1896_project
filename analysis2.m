@@ -10,12 +10,12 @@ len = input('Enter Length of Test (in meters): ');
 
 % importing data for right foot
 % rightFile = 'RIGHT_M4_QUICK_CAL.TXT';
-rightFile = 'RIGHT_OUTN2.txt';
+rightFile = 'RIGHT_OUTM3.txt';
 [rAccel,rDelimeterOut] = importdata(rightFile);
 
 % importing data for left foot
 % leftFile = 'LEFT_M4_QUICK_CAL.txt';
-leftFile = 'LEFT_OUTN2.txt';
+leftFile = 'LEFT_OUTM3.txt';
 [lAccel,lDelimeterOut] = importdata(leftFile);
 
 % initializing arrays that will hold velocity and displacement data
@@ -67,10 +67,14 @@ smoothAccelL2 = smoothAccelL(:,1);
 rHeelStrikes = zeros(size(smoothAccelR,1));
 lHeelStrikes = zeros(size(smoothAccelL,1));
 for i = 1:size(rlocs)
-    rHeelStrikes(rlocs(i)) = 1;
+    if (smoothAccelR2(i) < -0.4)
+        rHeelStrikes(rlocs(i)) = 1;
+    end
 end
 for i = 1:size(llocs)
-    lHeelStrikes(llocs(i)) = 1;
+    if (smoothAccelL2(i) < -0.4)
+        lHeelStrikes(llocs(i)) = 1;
+    end
 end
 
 % calculating velocity data for the right foot
@@ -307,7 +311,7 @@ end
 
 % determining which foot stepped first
 rightFirst = -1;
-if correctedStrideLCum(2) > correctedStrideRCum(2) % left foot stepped first
+if correctedStrideLCum(2) < correctedStrideRCum(2) % left foot stepped first
     rightFirst = 0;
 else % right foot stepped first
     rightFirst = 1;
