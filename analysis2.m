@@ -112,8 +112,8 @@ title('smoothed left signal');
 
 % calculating velocity data for the right foot
 rAccelMag = abs(smoothAccelR);
-rHeelStrikes = rAccelMag(:,1) < .6; % TODO: might have to change this
-rHeelLift = rAccelMag(:,1) < .6;
+rHeelStrikes = rAccelMag < .6; % TODO: might have to change this
+rHeelLift = rAccelMag < .6;
 % previous state (0 = stationary, 1 = moving)
 prevState = 0;
 smoothAccelR(:,1) = smoothAccelR(:,1)*-1;
@@ -141,8 +141,8 @@ AVG_rV = mean(rV);
 
 % calculating velocity data for the left foot
 lAccelMag = abs(smoothAccelL);
-lHeelStrikes = lAccelMag(:,1) < .6;
-lHeelLift = lAccelMag(:,1) < .6;
+lHeelStrikes = lAccelMag < .6;
+lHeelLift = lAccelMag < .6;
 prevState=0;
 for w = 2:length(lV)-1
     % get time displacement for right foot
