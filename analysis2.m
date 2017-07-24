@@ -75,13 +75,13 @@ coeff = ones(1,movAvg)/movAvg;
 % plot(f,P1);
 % title('spectrum of displacement');
 
-% smooth Right foot curve
+% smooth right foot curve
 avg_x = filter(coeff,1,ravg_x);
 avg_y = filter(coeff,1,ravg_y);
 avg_z = filter(coeff,1,ravg_z);
 smoothAccelR = [avg_x,avg_y,avg_z, rAccel(:,4)];
 
-% smooth Left foot curve
+% smooth left foot curve
 avg_x = filter(coeff,1,lavg_x);
 avg_y = filter(coeff,1,lavg_y);
 avg_z = filter(coeff,1,lavg_z);
@@ -163,7 +163,7 @@ end
 
 AVG_lV = mean(lV);
 
-% smooth Velocity
+% smooth velocity
 movAvgv = 8;
 coeffv = ones(1,movAvgv)/movAvgv;
 rV = filter(coeffv,1,rV);
