@@ -1,4 +1,4 @@
-% NOTES: 
+% NOTES:
 %  - We MUST keep track of which file belongs to which foot
 %  - We are assuming x and z are the dimensions of the floor/
 %    horizontal plane (and y is the vertical dimension)
@@ -6,16 +6,14 @@
 %  - The patient MUST start with both feet at the same displacement
 
 % request overall test length from user
-len = input('Enter Length of Test (in meters): ');
+len = input('Enter length of test (in meters): ');
 
 % importing data for right foot
-% rightFile = 'RIGHT_M4_QUICK_CAL.TXT';
-rightFile = 'RIGHT_OUTM3.txt';
+rightFile = 'RIGHT_POSVM3.txt';
 [rAccel,rDelimeterOut] = importdata(rightFile);
 
 % importing data for left foot
-% leftFile = 'LEFT_M4_QUICK_CAL.txt';
-leftFile = 'LEFT_OUTM3.txt';
+leftFile = 'LEFT_POSVM3.txt';
 [lAccel,lDelimeterOut] = importdata(leftFile);
 
 % initializing arrays that will hold velocity and displacement data
@@ -29,35 +27,70 @@ lD = zeros(size(lAccel,1),3);
 rT = zeros(size(rAccel,1),1);
 lT = zeros(size(lAccel,1),1);
 
-cutoff=7; % set the lowpass cutoff frequency
+% plot original accel
+figure(1);
+plot(lAccel(:,4),lAccel(:,1));
+title('original left accel');
 
-% call low pass filter function for rAccel
-x=rAccel(:,1);
-t=rAccel(:,4);
-[X, f, y, y2, Fs] = fftf(t, x, cutoff);
+% define new array of X Y Z accel
+ravg_x = rAccel(:,1);
+ravg_y = rAccel(:,2);
+ravg_z = rAccel(:,3);
 
-pause;
+lavg_x = lAccel(:,1);
+lavg_y = lAccel(:,2);
+lavg_z = lAccel(:,3);
 
-% create a smoothed acceleration curve using rolling average
-movAvg = 10;
+
+% % filter X-axis acceleration vectors
+% load('Lpass_Acc_X.mat');
+% ravg_x = filter(NumX,1,rAccel(:,1));
+% lavg_x = filter(NumX,1,lAccel(:,1));
+%
+% % filter Y-axis acceleration vectors
+% load('Lpass_Acc_Y.mat');
+% ravg_y = filter(NumAy,1,rAccel(:,2));
+% lavg_y = filter(NumAy,1,lAccel(:,2));
+
+% % plot filtered accel
+% figure(2);
+% plot(lAccel(:,4),lavg_x);
+% title('filtered left accel')
+
+% creating a smoothed acceleration curve using rolling average
+movAvg = 14;
 coeff = ones(1,movAvg)/movAvg;
 
+% % create frequency spectrum of displacement
+% Fs = 90;            % sampling frequency
+% T = 1/Fs;             % sampling period
+% L = length(lAccel(:,2));             % length of signal
+% t = (0:L-1)*T;        % time vector
+% lyf = fft(lAccel(:,2));
+% P2 = abs(lyf/L);
+% P1 = P2(1:L/2+1);
+% P1(2:end-1) = 2*P1(2:end-1);
+% f = Fs*(0:(L/2))/L;
+% figure(11);
+% plot(f,P1);
+% title('spectrum of displacement');
+
 % smooth Right foot curve
-avg_x = X.';
-avg_y = filter(coeff,1,rAccel(:,2));
-avg_z = filter(coeff,1,rAccel(:,3));
+avg_x = filter(coeff,1,ravg_x);
+avg_y = filter(coeff,1,ravg_y);
+avg_z = filter(coeff,1,ravg_z);
 smoothAccelR = [avg_x,avg_y,avg_z, rAccel(:,4)];
 
-% lowpass filter for left X accel
-lx=lAccel(:,1);
-t=lAccel(:,4);
-[lX, f, y, y2, Fs] = fftf(t, lx, cutoff);
-
 % smooth Left foot curve
-avg_x = lX.';
-avg_y = filter(coeff,1,lAccel(:,2));
-avg_z = filter(coeff,1,lAccel(:,3));
+avg_x = filter(coeff,1,lavg_x);
+avg_y = filter(coeff,1,lavg_y);
+avg_z = filter(coeff,1,lavg_z);
 smoothAccelL = [avg_x,avg_y,avg_z, lAccel(:,4)];
+
+% plot filtered and smoothed curve
+figure(3);
+plot(lAccel(:,4),avg_x);
+title('smoothed left signal');
 
 % find the heelstrikes
 smoothAccelR2 = smoothAccelR(:,1);
@@ -96,13 +129,15 @@ for w = 2:length(rV)-1
 %             disp(rV(w,:));
             rV(w,:)=[0,0,0];
         end
-        prevState=1;
+        prevState = 1;
     end
     if(rHeelStrikes(w-1) == 1 && rHeelStrikes(w) == 1 && rHeelStrikes(w+1) == 1 || prevState==0)
         rV(w,:) = [0 0 0]; % force zero velocity when foot stationary
         prevState = 0;
     end
 end
+
+AVG_rV = mean(rV);
 
 % calculating velocity data for the left foot
 lAccelMag = abs(smoothAccelL);
@@ -126,10 +161,18 @@ for w = 2:length(lV)-1
     end
 end
 
+AVG_lV = mean(lV);
+
+% smooth Velocity
+movAvgv = 8;
+coeffv = ones(1,movAvgv)/movAvgv;
+rV = filter(coeffv,1,rV);
+lV = filter(coeffv,1,lV);
+
 % calculating displacement for the right foot
 for ri = 2:size(smoothAccelR,1)
     for ry = 1:3
-        rD(ri,ry) = rD(ri-1,ry) + rV(ri,ry) * rT(ri)*(.001);   
+        rD(ri,ry) = rD(ri-1,ry) + rV(ri,ry) * rT(ri)*(.001);
     end
 end
 
@@ -140,12 +183,17 @@ for li = 2:size(smoothAccelL,1)
     end
 end
 
+% smooth displacement
+movAvgd = 6;
+coeffd = ones(1,movAvgd)/movAvgd;
+rD = filter(coeffd,1,rD);
+lD = filter(coeffd,1,lD);
 
-% determining individual stride lengths . . . 
+% determining individual stride lengths . . .
 
 % array marker for right and left heel strike data in x+z dimensions
 %  2nd dimension (for z) is not needed if using only x for displacement
-%  I'm keeping the 2nd dimension for now just in case we want to examine
+%  --keeping the 2nd dimension for now just in case we want to examine
 %  other calculation results.
 rStrideD = zeros(size(smoothAccelR,1), 2);
 lStrideD = zeros(size(smoothAccelL,1), 2);
@@ -170,7 +218,7 @@ for li = 1:size(lStrideD,1) % for every sample
     end
 end
 
-% Getting rid of repetition in the stride data
+% getting rid of repetition in the stride data
 
 rStrideDExtracted = zeros(floor(size(rStrideD,1)/5), 1);
 lStrideDExtracted = zeros(floor(size(lStrideD,1)/5), 1);
@@ -212,7 +260,7 @@ for ri = rj0:size(rStrideD)-5
         rSize = rj;
     end
 end
-    
+
 for li = lj0:size(lStrideD)-5
     if (lStrideD(li,1)~=lStrideD(li+1,1) && lStrideD(li,1)~=lStrideD(li+2,1) && lStrideD(li,1)~=lStrideD(li+3,1) && lStrideD(li,1)~=lStrideD(li+4,1) && lStrideD(li,1)~=lStrideDExtracted(lj-1))
         lStrideDExtracted(lj) = lStrideD(li,1);
@@ -238,7 +286,7 @@ for ri = 1:rSize
         % fprintf('X: %d %d\n', rStrideDExtracted(ri), rStrideUndup(rj-1));
     end
 end
-    
+
 for li = 1:lSize
     if ~(abs(lStrideDExtracted(li)) < abs(lStrideUndup(lj-1))+0.02 && abs(lStrideDExtracted(li)) > abs(lStrideUndup(lj-1))-0.02)
         lStrideUndup(lj) = lStrideDExtracted(li);
@@ -249,20 +297,20 @@ for li = 1:lSize
     end
 end
 
-%remove 0's at end of array
+% remove 0s at end of array
 for x = size(rStrideUndup):-1:2
-        if rStrideUndup(x)==0
-               rStrideUndup=rStrideUndup(1:end-1);
-        end
+    if rStrideUndup(x)==0
+        rStrideUndup=rStrideUndup(1:end-1);
+    end
 end
 
 for x = size(lStrideUndup):-1:2
-        if lStrideUndup(x)==0
-               lStrideUndup=lStrideUndup(1:end-1);
-        end
+    if lStrideUndup(x)==0
+        lStrideUndup=lStrideUndup(1:end-1);
+    end
 end
 
-%Use overall test length to increase accuracy of step measurements
+% use overall test length to increase accuracy of step measurements
 measuredTotalR = rD(end,1);
 measuredTotalL = abs(lD(end,1));
 
@@ -271,7 +319,7 @@ disp(measuredTotalR);
 disp('mtl');
 disp(measuredTotalL);
 
-%Get individual stride lengths from overall displacement
+% get individual stride lengths from overall displacement
 strideR = zeros(size(rStrideUndup));
 for ri = 2:size(rStrideUndup)
     strideR(ri) = rStrideUndup(ri)-rStrideUndup(ri-1);
@@ -282,7 +330,7 @@ for li = 2:size(lStrideUndup)
     strideL(li) = abs(lStrideUndup(li))-abs(lStrideUndup(li-1));
 end
 
-%Use overall test length to increase accuracy of step measurements
+% use overall test length to increase accuracy of step measurements
 correctedStrideR = (strideR/measuredTotalR)*len;
 correctedStrideL = (strideL/measuredTotalL)*len;
 
@@ -329,6 +377,9 @@ else
     stepLengthL = zeros(size(correctedStrideRCum));
 end
 
+disp('max');
+disp(max);
+
 % getting the step lengths
 if rightFirst == 1 % if stepped with right foot first
     for i = 2:max
@@ -354,10 +405,9 @@ disp(stepLengthR);
 % plot3(rD(:,1),rD(:,2),rD(:,3),'r');
 % hold on;
 % plot3(-lD(:,1),lD(:,2),lD(:,3),'b'); % if the data is the same, only the latter curve will appear
-% 
-figure(4);
+%
+figure(8);
 plot(rD(:,1),rD(:,2),'r',lD(:,1),lD(:,2),'b');
 
-disp('Fs:');
-disp(Fs);
-
+disp(AVG_rV);
+disp(AVG_lV);
