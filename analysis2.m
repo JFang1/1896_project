@@ -112,16 +112,16 @@ title('smoothed left signal');
 
 % calculating velocity data for the right foot
 rAccelMag = abs(smoothAccelR);
-rHeelStrikes = rAccelMag < .6; % TODO: might have to change this
+rHeelStrikes = rAccelMag < .8; % TODO: might have to change this
 rHeelLift = rAccelMag < .6;
 % previous state (0 = stationary, 1 = moving)
 prevState = 0;
 smoothAccelR(:,1) = smoothAccelR(:,1)*-1;
 % disp('debugging lines 84-101');
-for w = 2:length(rV)-1
+for w = 3:length(rV)-2
     % get time displacement for right foot
     rT(w)= smoothAccelR(w,4) - smoothAccelR(w-1,4);
-    if(rHeelLift(w-1) == 0 && rHeelLift(w)==0 && rHeelLift(w+1)==0 || prevState==1)
+    if(rHeelLift(w-2) == 0 && rHeelLift(w+2)==0 && rHeelLift(w-1) == 0 && rHeelLift(w)==0 && rHeelLift(w+1)==0 || prevState==1)
         rV(w,:) = rV(w-1,:) + smoothAccelR(w,1:3) * rT(w)*(.001);
         % zero Out any backwards velocities
         if( rV(w,1) < 0)
@@ -131,7 +131,7 @@ for w = 2:length(rV)-1
         end
         prevState = 1;
     end
-    if(rHeelStrikes(w-1) == 1 && rHeelStrikes(w) == 1 && rHeelStrikes(w+1) == 1 || prevState==0)
+    if(rHeelStrikes(w-2) == 1 && rHeelStrikes(w+2) == 1 && rHeelStrikes(w-1) == 1 && rHeelStrikes(w) == 1 && rHeelStrikes(w+1) == 1 || prevState==0)
         rV(w,:) = [0 0 0]; % force zero velocity when foot stationary
         prevState = 0;
     end
@@ -141,13 +141,13 @@ AVG_rV = mean(rV);
 
 % calculating velocity data for the left foot
 lAccelMag = abs(smoothAccelL);
-lHeelStrikes = lAccelMag < .6;
+lHeelStrikes = lAccelMag < .8;
 lHeelLift = lAccelMag < .6;
 prevState=0;
-for w = 2:length(lV)-1
+for w = 3:length(lV)-2
     % get time displacement for right foot
     lT(w)= smoothAccelL(w,4) - smoothAccelL(w-1,4);
-    if(lHeelLift(w-1) == 0 && lHeelLift(w) == 0 && lHeelLift(w+1) == 0 || prevState==1)
+    if(lHeelLift(w-2) == 0 && lHeelLift(w+2) == 0 && lHeelLift(w-1) == 0 && lHeelLift(w) == 0 && lHeelLift(w+1) == 0 || prevState==1)
         lV(w,:) = lV(w-1,:) + smoothAccelL(w,1:3) * lT(w)*(.001);
         % zero Out any backwards velocities
          if( lV(w,1) < 0)
@@ -155,7 +155,7 @@ for w = 2:length(lV)-1
          end
         prevState=1;
     end
-    if(lHeelStrikes(w-1) == 1 && lHeelStrikes(w) == 1 && lHeelStrikes(w+1) == 1 || prevState==0)
+    if(lHeelStrikes(w-2) == 1 && lHeelStrikes(w+2) == 1 && lHeelStrikes(w-1) == 1 && lHeelStrikes(w) == 1 && lHeelStrikes(w+1) == 1 || prevState==0)
         lV(w,:) = [0 0 0]; % force zero velocity when foot stationary
         prevState = 0;
     end
