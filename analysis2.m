@@ -334,7 +334,7 @@ end
 correctedStrideR = (strideR/measuredTotalR)*len;
 correctedStrideL = (strideL/measuredTotalL)*len;
 
-%Display stride data corrected using overall walk length
+% display stride data corrected using overall walk length
 disp('---------------------');
 disp('Corrected Right foot heelstrike displacements without repetition:');
 disp(correctedStrideR);
