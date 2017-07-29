@@ -1,3 +1,4 @@
+clc
 % NOTES:
 %  - We MUST keep track of which file belongs to which foot
 %  - We are assuming x and z are the dimensions of the floor/
@@ -40,6 +41,16 @@ ravg_z = rAccel(:,3);
 lavg_x = lAccel(:,1);
 lavg_y = lAccel(:,2);
 lavg_z = lAccel(:,3);
+
+
+stopsR = zeros(100,1);
+stopsRCount=1;
+stopsL = zeros(100,1);
+stopsLCount=1;
+startsR = zeros(100,1);
+startsRCount=1;
+startsL = zeros(100,1);
+startsLCount=1;
 
 
 % % filter X-axis acceleration vectors
@@ -122,16 +133,24 @@ for w = 3:length(rV)-2
     % get time displacement for right foot
     rT(w)= smoothAccelR(w,4) - smoothAccelR(w-1,4);
     if(rHeelLift(w-2) == 0 && rHeelLift(w+2)==0 && rHeelLift(w-1) == 0 && rHeelLift(w)==0 && rHeelLift(w+1)==0 || prevState==1)
+        %detect if beginning of stride
+        if(prevState==0)
+            startsR(startsRCount)=w;
+            startsRCount=startsRCount+1;
+        end
         rV(w,:) = rV(w-1,:) + smoothAccelR(w,1:3) * rT(w)*(.001);
         % zero Out any backwards velocities
         if( rV(w,1) < 0)
-%             disp(w);
-%             disp(rV(w,:));
             rV(w,:)=[0,0,0];
         end
         prevState = 1;
     end
     if(rHeelStrikes(w-2) == 1 && rHeelStrikes(w+2) == 1 && rHeelStrikes(w-1) == 1 && rHeelStrikes(w) == 1 && rHeelStrikes(w+1) == 1 || prevState==0)
+        %Detect end of stride
+        if(prevState==1)
+            stopsR(stopsRCount)=w;
+            stopsRCount=stopsRCount+1;
+        end
         rV(w,:) = [0 0 0]; % force zero velocity when foot stationary
         prevState = 0;
     end
@@ -148,6 +167,11 @@ for w = 3:length(lV)-2
     % get time displacement for right foot
     lT(w)= smoothAccelL(w,4) - smoothAccelL(w-1,4);
     if(lHeelLift(w-2) == 0 && lHeelLift(w+2) == 0 && lHeelLift(w-1) == 0 && lHeelLift(w) == 0 && lHeelLift(w+1) == 0 || prevState==1)
+        %detect if beginning of stride
+        if(prevState==0)
+            startsL(startsLCount)=w;
+            startsLCount=startsLCount+1;
+        end
         lV(w,:) = lV(w-1,:) + smoothAccelL(w,1:3) * lT(w)*(.001);
         % zero Out any backwards velocities
          if( lV(w,1) < 0)
@@ -156,6 +180,11 @@ for w = 3:length(lV)-2
         prevState=1;
     end
     if(lHeelStrikes(w-2) == 1 && lHeelStrikes(w+2) == 1 && lHeelStrikes(w-1) == 1 && lHeelStrikes(w) == 1 && lHeelStrikes(w+1) == 1 || prevState==0)
+        %detect if end of stride
+        if(prevState==1)
+            stopsL(stopsLCount)=w;
+            stopsLCount=stopsLCount+1;
+        end
         lV(w,:) = [0 0 0]; % force zero velocity when foot stationary
         prevState = 0;
     end
@@ -314,9 +343,9 @@ end
 measuredTotalR = rD(end,1);
 measuredTotalL = abs(lD(end,1));
 
-disp('mtr');
+disp('Measured Total Right (m)');
 disp(measuredTotalR);
-disp('mtl');
+disp('Measured Total Left (m)');
 disp(measuredTotalL);
 
 % get individual stride lengths from overall displacement
@@ -334,13 +363,42 @@ end
 correctedStrideR = (strideR/measuredTotalR)*len;
 correctedStrideL = (strideL/measuredTotalL)*len;
 
+%Get number of strides for each foot
+num_strR = find(~startsR);
+num_strL = find(~startsL);
+
+num_strR=num_strR(1);
+num_strL=num_strL(1);
+
+timeR=zeros(num_strR,1);
+timeL=zeros(num_strL,1);
+
 % display stride data corrected using overall walk length
 disp('---------------------');
-disp('Corrected Right foot heelstrike displacements without repetition:');
-disp(correctedStrideR);
+disp('Corrected Right Foot Strides:');
+disp(sprintf('1: % 0.4fm',correctedStrideR(1)));
+for str= 1:num_strR-1
+   timeR(str) = smoothAccelR(stopsR(str),4)-smoothAccelR(startsR(str),4);
+   if str<9
+        newStr=sprintf('%d: % 0.4fm   %dms',str+1,correctedStrideR(str+1),timeR(str)); 
+   else
+        newStr=sprintf('%d: %0.4fm   %dms',str+1,correctedStrideR(str+1),timeR(str)); 
+   end
+   disp(newStr);
+end
+
 disp('---------------------');
-disp('Corrected Left foot heelstrike displacements without repetition:');
-disp(correctedStrideL);
+disp('Corrected Left Foot Strides:');
+disp(sprintf('1: % 0.4fm',correctedStrideL(1)));
+for str= 1:num_strL-1
+   timeL(str) = smoothAccelL(stopsL(str),4)-smoothAccelL(startsL(str),4);
+   if str<9
+       newStr=sprintf('%d: % 0.4fm   %dms',str+1,correctedStrideL(str+1),timeL(str)); 
+   else
+       newStr=sprintf('%d: %0.4fm   %dms',str+1,correctedStrideL(str+1),timeL(str)); 
+   end
+   disp(newStr);
+end
 disp('---------------------');
 
 correctedStrideRCum = zeros(size(correctedStrideR));
@@ -365,7 +423,6 @@ else % right foot stepped first
     rightFirst = 1;
 end
 
-max = 0;
 % determining the largest size of array that we can use
 if size(correctedStrideRCum,1) > size(correctedStrideLCum,1)
     max = size(correctedStrideLCum,1);
@@ -376,9 +433,9 @@ else
     stepLengthR = zeros(size(correctedStrideRCum));
     stepLengthL = zeros(size(correctedStrideRCum));
 end
-
-disp('max');
-disp(max);
+% 
+% disp('max');
+% disp(max);
 
 % getting the step lengths
 if rightFirst == 1 % if stepped with right foot first
@@ -393,10 +450,27 @@ else % left foot stepped first
     end
 end
 
-disp('step length L:');
-disp(stepLengthL);
-disp('step length R:');
-disp(stepLengthR);
+disp('Right Step Length:');
+for x = 1:max
+    if x<10
+        newStr=sprintf('%d: % 0.4fm',x,stepLengthR(x,1));
+    else
+        newStr=sprintf('%d: %0.4fm',x,stepLengthR(x,1));
+    end
+   disp(newStr);
+end
+
+disp('---------------------');
+disp('Left Step Length:');
+
+for x = 2:max
+    if x<10
+        newStr=sprintf('%d: % 0.4fm',x,stepLengthL(x,1));
+    else
+        newStr=sprintf('%d: %0.4fm',x,stepLengthL(x,1));
+    end
+   disp(newStr);
+end
 
 
 % plotting the step traces for both feet on the same graph
@@ -408,6 +482,3 @@ disp(stepLengthR);
 %
 figure(8);
 plot(rD(:,1),rD(:,2),'r',lD(:,1),lD(:,2),'b');
-
-disp(AVG_rV);
-disp(AVG_lV);
