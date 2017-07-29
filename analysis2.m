@@ -29,9 +29,9 @@ rT = zeros(size(rAccel,1),1);
 lT = zeros(size(lAccel,1),1);
 
 % plot original accel
-figure(1);
-plot(lAccel(:,4),lAccel(:,1));
-title('original left accel');
+% figure(1);
+% plot(lAccel(:,4),lAccel(:,1));
+% title('original left accel');
 
 % define new array of X Y Z accel
 ravg_x = rAccel(:,1);
@@ -99,9 +99,9 @@ avg_z = filter(coeff,1,lavg_z);
 smoothAccelL = [avg_x,avg_y,avg_z, lAccel(:,4)];
 
 % plot filtered and smoothed curve
-figure(3);
-plot(lAccel(:,4),avg_x);
-title('smoothed left signal');
+% figure(3);
+% plot(lAccel(:,4),avg_x);
+% title('smoothed left signal');
 
 % % find the heelstrikes
 % smoothAccelR2 = smoothAccelR(:,1);
@@ -472,14 +472,7 @@ for x = 2:max
    disp(newStr);
 end
 
-
-% plotting the step traces for both feet on the same graph
-% figure(1);
-% view(3);
-% plot3(rD(:,1),rD(:,2),rD(:,3),'r');
-% hold on;
-% plot3(-lD(:,1),lD(:,2),lD(:,3),'b'); % if the data is the same, only the latter curve will appear
-%
+%Plot X vs Y displacements
 figure(8);
 plot(rD(:,1),rD(:,2),'r',lD(:,1),lD(:,2),'b');
 xlabel('Horizontal Displacement (m)');
