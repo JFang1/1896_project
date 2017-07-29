@@ -482,3 +482,6 @@ end
 %
 figure(8);
 plot(rD(:,1),rD(:,2),'r',lD(:,1),lD(:,2),'b');
+xlabel('Horizontal Displacement (m)');
+ylabel('Vertical Displacement (m)');
+title('Left And Right Foot Displacement');
