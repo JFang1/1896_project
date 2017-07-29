@@ -10,11 +10,11 @@ clc
 len = input('Enter length of test (in meters): ');
 
 % importing data for right foot
-rightFile = 'RIGHT_POSVM3.txt';
+rightFile = 'RIGHT_POSVM1.txt';
 [rAccel,rDelimeterOut] = importdata(rightFile);
 
 % importing data for left foot
-leftFile = 'LEFT_POSVM3.txt';
+leftFile = 'LEFT_POSVM1.txt';
 [lAccel,lDelimeterOut] = importdata(leftFile);
 
 % initializing arrays that will hold velocity and displacement data
@@ -134,7 +134,7 @@ for w = 3:length(rV)-2
     rT(w)= smoothAccelR(w,4) - smoothAccelR(w-1,4);
     if(rHeelLift(w-2) == 0 && rHeelLift(w+2)==0 && rHeelLift(w-1) == 0 && rHeelLift(w)==0 && rHeelLift(w+1)==0 || prevState==1)
         %detect if beginning of stride
-        if(prevState==0)
+        if(prevState==0 && ~(rHeelStrikes(w-2) == 1 && rHeelStrikes(w+2) == 1 && rHeelStrikes(w-1) == 1 && rHeelStrikes(w) == 1 && rHeelStrikes(w+1) == 1))
             startsR(startsRCount)=w;
             startsRCount=startsRCount+1;
         end
@@ -147,7 +147,7 @@ for w = 3:length(rV)-2
     end
     if(rHeelStrikes(w-2) == 1 && rHeelStrikes(w+2) == 1 && rHeelStrikes(w-1) == 1 && rHeelStrikes(w) == 1 && rHeelStrikes(w+1) == 1 || prevState==0)
         %Detect end of stride
-        if(prevState==1)
+        if(prevState==1 && ~(rHeelLift(w-2) == 0 && rHeelLift(w+2)==0 && rHeelLift(w-1) == 0 && rHeelLift(w)==0 && rHeelLift(w+1)==0))
             stopsR(stopsRCount)=w;
             stopsRCount=stopsRCount+1;
         end
@@ -168,7 +168,7 @@ for w = 3:length(lV)-2
     lT(w)= smoothAccelL(w,4) - smoothAccelL(w-1,4);
     if(lHeelLift(w-2) == 0 && lHeelLift(w+2) == 0 && lHeelLift(w-1) == 0 && lHeelLift(w) == 0 && lHeelLift(w+1) == 0 || prevState==1)
         %detect if beginning of stride
-        if(prevState==0)
+        if(prevState==0 && ~(lHeelStrikes(w-2) == 1 && lHeelStrikes(w+2) == 1 && lHeelStrikes(w-1) == 1 && lHeelStrikes(w) == 1 && lHeelStrikes(w+1) == 1))
             startsL(startsLCount)=w;
             startsLCount=startsLCount+1;
         end
@@ -181,7 +181,7 @@ for w = 3:length(lV)-2
     end
     if(lHeelStrikes(w-2) == 1 && lHeelStrikes(w+2) == 1 && lHeelStrikes(w-1) == 1 && lHeelStrikes(w) == 1 && lHeelStrikes(w+1) == 1 || prevState==0)
         %detect if end of stride
-        if(prevState==1)
+        if(prevState==1 && ~(lHeelLift(w-2) == 0 && lHeelLift(w+2) == 0 && lHeelLift(w-1) == 0 && lHeelLift(w) == 0 && lHeelLift(w+1) == 0))
             stopsL(stopsLCount)=w;
             stopsLCount=stopsLCount+1;
         end
@@ -300,9 +300,16 @@ for li = lj0:size(lStrideD)-5
     end
 end
 
+
+num_strR = find(~startsR);
+num_strL = find(~startsL);
+
+num_strR=num_strR(1);
+num_strL=num_strL(1);
+
 % removing close duplicates
-rStrideUndup = zeros(rSize,1);
-lStrideUndup = zeros(lSize,1);
+rStrideUndup = zeros(num_strR,1);
+lStrideUndup = zeros(num_strL,1);
 rj = 2;
 lj = 2;
 
@@ -364,12 +371,6 @@ correctedStrideR = (strideR/measuredTotalR)*len;
 correctedStrideL = (strideL/measuredTotalL)*len;
 
 %Get number of strides for each foot
-num_strR = find(~startsR);
-num_strL = find(~startsL);
-
-num_strR=num_strR(1);
-num_strL=num_strL(1);
-
 timeR=zeros(num_strR,1);
 timeL=zeros(num_strL,1);
 
@@ -377,27 +378,37 @@ timeL=zeros(num_strL,1);
 disp('---------------------');
 disp('Corrected Right Foot Strides:');
 disp(sprintf('1: % 0.4fm',correctedStrideR(1)));
-for str= 1:num_strR-1
-   timeR(str) = smoothAccelR(stopsR(str),4)-smoothAccelR(startsR(str),4);
-   if str<9
-        newStr=sprintf('%d: % 0.4fm   %dms',str+1,correctedStrideR(str+1),timeR(str)); 
-   else
-        newStr=sprintf('%d: %0.4fm   %dms',str+1,correctedStrideR(str+1),timeR(str)); 
+for str= 1:size(correctedStrideR,1)-1
+   try
+        timeR(str) = smoothAccelR(stopsR(str),4)-smoothAccelR(startsR(str),4);
+       if str<9
+            newStr=sprintf('%d: % 0.4fm   %dms',str+1,correctedStrideR(str+1),timeR(str)); 
+       else
+            newStr=sprintf('%d: %0.4fm   %dms',str+1,correctedStrideR(str+1),timeR(str)); 
+       end
+       disp(newStr);
+   catch
+       newStr=sprintf('%d: %0.4fm ',str+1,correctedStrideR(str+1)); 
+       disp(newStr);
    end
-   disp(newStr);
 end
 
 disp('---------------------');
 disp('Corrected Left Foot Strides:');
 disp(sprintf('1: % 0.4fm',correctedStrideL(1)));
-for str= 1:num_strL-1
-   timeL(str) = smoothAccelL(stopsL(str),4)-smoothAccelL(startsL(str),4);
-   if str<9
-       newStr=sprintf('%d: % 0.4fm   %dms',str+1,correctedStrideL(str+1),timeL(str)); 
-   else
-       newStr=sprintf('%d: %0.4fm   %dms',str+1,correctedStrideL(str+1),timeL(str)); 
+for str= 1:size(correctedStrideL,1)-1
+   try
+       timeL(str) = smoothAccelL(stopsL(str),4)-smoothAccelL(startsL(str),4);
+       if str<9
+           newStr=sprintf('%d: % 0.4fm   %dms',str+1,correctedStrideL(str+1),timeL(str)); 
+       else
+           newStr=sprintf('%d: %0.4fm   %dms',str+1,correctedStrideL(str+1),timeL(str)); 
+       end
+       disp(newStr);
+   catch
+       newStr=sprintf('%d: %0.4fm',str+1,correctedStrideL(str+1));
+       disp(newStr);
    end
-   disp(newStr);
 end
 disp('---------------------');
 
