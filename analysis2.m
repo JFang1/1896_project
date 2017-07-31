@@ -1,5 +1,7 @@
 %%--------------------------------------------------------%%
 %
+%Name: analysis2.m
+%
 %Description: This script is intended to be used with the 
 %             wearable step tracking device developed as a 
 %             senior design project during the Summer 2017
