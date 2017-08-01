@@ -5,8 +5,9 @@
 %Description: This script is intended to be used with the 
 %             wearable step tracking device developed as a 
 %             senior design project during the Summer 2017
-%             semester. It uses the data acquired from the 
-%             device to estimate stride and step distances
+%             semester at the University of Pittsburgh. It
+%             It uses the data acquired from the device
+%             to estimate stride and step distances
 %             during a straight line walk test.
 %
 %Authors:
