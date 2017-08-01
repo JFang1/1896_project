@@ -27,11 +27,11 @@ clc
 len = input('Enter length of test (in meters): ');
 
 % importing data for right foot
-rightFile = 'RIGHT_MATN2.txt';
+rightFile = 'RIGHT.txt';
 [rAccel,rDelimeterOut] = importdata(rightFile);
 
 % importing data for left foot
-leftFile = 'LEFT_MATN2.txt';
+leftFile = 'LEFT.txt';
 [lAccel,lDelimeterOut] = importdata(leftFile);
 
 % initializing arrays that will hold velocity and displacement data
@@ -226,15 +226,10 @@ for li = lj0:size(lStrideD)-5
 end
 
 
-num_strR = find(~startsR);
-num_strL = find(~startsL);
-
-num_strR=num_strR(1);
-num_strL=num_strL(1);
 
 % removing close duplicates
-rStrideUndup = zeros(num_strR,1);
-lStrideUndup = zeros(num_strL,1);
+rStrideUndup = zeros(rSize,1);
+lStrideUndup = zeros(lSize,1);
 rj = 2;
 lj = 2;
 
